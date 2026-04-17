@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WaterLife — CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Golos+Text:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2333;
+    --surface3: #21262d;
+    --border: #30363d;
+    --accent: #00b4d8;
+    --accent2: #0077b6;
+    --green: #2ea043;
+    --green-bg: #0d2a0f;
+    --red: #e74c3c;
+    --red-bg: #2a0d0d;
+    --orange: #f39c12;
+    --orange-bg: #2a1f0d;
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --text3: #6e7681;
+    --radius: 10px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Golos Text', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; }
+
+  /* ── LOADER ── */
+  #loader {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 9999; gap: 16px;
+  }
+  .loader-logo { font-family: 'Unbounded', sans-serif; font-size: 24px; font-weight: 700; color: var(--accent); }
+  .loader-logo span { color: var(--text2); font-weight: 400; }
+  .loader-bar { width: 200px; height: 3px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .loader-fill { height: 100%; background: var(--accent); border-radius: 3px; animation: loadFill 1.5s ease forwards; }
+  @keyframes loadFill { from { width: 0; } to { width: 100%; } }
+  .loader-text { font-size: 12px; color: var(--text3); }
+
+  /* ── LOGIN ── */
+  #login-screen {
+    display: none; position: fixed; inset: 0; background: var(--bg);
+    align-items: center; justify-content: center; z-index: 999;
+  }
+  #login-screen.show { display: flex; }
+  .login-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 40px; width: 360px;
+    box-shadow: var(--shadow);
+  }
+  .login-title { font-family: 'Unbounded', sans-serif; font-size: 18px; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+  .login-sub { font-size: 13px; color: var(--text3); margin-bottom: 28px; }
+  .login-group { margin-bottom: 16px; }
+  .login-group label { display: block; font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 6px; }
+  .login-input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px; color: var(--text);
+    font-family: 'Golos Text', sans-serif; font-size: 14px; outline: none;
+    transition: border .15s;
+  }
+  .login-input:focus { border-color: var(--accent); }
+  .login-btn {
+    width: 100%; background: var(--accent2); color: #fff; border: none;
+    border-radius: 8px; padding: 12px; font-family: 'Golos Text', sans-serif;
+    font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 8px;
+    transition: background .15s;
+  }
+  .login-btn:hover { background: var(--accent); }
+  .login-error { color: var(--red); font-size: 12px; margin-top: 8px; display: none; }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo { font-family: 'Unbounded', sans-serif; font-size: 15px; font-weight: 700; color: var(--accent); letter-spacing: -0.3px; white-space: nowrap; }
+  .logo span { color: var(--text2); font-weight: 400; }
+  .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; flex-shrink: 0; }
+  .sync-dot.syncing { background: var(--orange); box-shadow: 0 0 6px var(--orange); }
+  .sync-dot.error { background: var(--red); box-shadow: 0 0 6px var(--red); animation: none; }
+  @keyframes pulse { 0%,100%{opacity:1;}50%{opacity:0.3;} }
+  .nav-tabs { display: flex; gap: 4px; margin-left: 8px; }
+  .nav-tab {
+    padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 13px;
+    font-weight: 500; color: var(--text2); border: none; background: none;
+    transition: all .15s; font-family: 'Golos Text', sans-serif;
+  }
+  .nav-tab:hover { background: var(--surface3); color: var(--text); }
+  .nav-tab.active { background: var(--accent2); color: #fff; }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .stat-pill { background: var(--surface3); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 12px; color: var(--text2); }
+  .stat-pill b { color: var(--accent); }
+  .btn { padding: 8px 16px; border-radius: var(--radius); font-family: 'Golos Text', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all .15s; }
+  .btn-primary { background: var(--accent2); color: #fff; }
+  .btn-primary:hover { background: var(--accent); }
+  .btn-success { background: var(--green); color: #fff; }
+  .btn-success:hover { filter: brightness(1.1); }
+  .btn-ghost { background: var(--surface3); color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--surface2); }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-logout { background: none; border: 1px solid var(--border); color: var(--text3); border-radius: 6px; padding: 5px 12px; font-size: 12px; cursor: pointer; font-family: 'Golos Text', sans-serif; }
+  .btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── VIEWS ── */
+  .view { display: none; padding: 24px; max-width: 1400px; margin: 0 auto; }
+  .view.active { display: block; }
+
+  /* ── DASHBOARD ── */
+  .dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; position: relative; overflow: hidden; }
+  .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .kpi-card.blue::before { background: var(--accent); }
+  .kpi-card.green::before { background: var(--green); }
+  .kpi-card.orange::before { background: var(--orange); }
+  .kpi-card.red::before { background: var(--red); }
+  .kpi-label { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+  .kpi-value { font-family: 'Unbounded', sans-serif; font-size: 28px; font-weight: 700; }
+  .kpi-card.blue .kpi-value { color: var(--accent); }
+  .kpi-card.green .kpi-value { color: var(--green); }
+  .kpi-card.orange .kpi-value { color: var(--orange); }
+  .kpi-card.red .kpi-value { color: var(--red); }
+  .kpi-sub { font-size: 12px; color: var(--text3); margin-top: 4px; }
+
+  .section-title { font-family: 'Unbounded', sans-serif; font-size: 13px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .month-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .schedule-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .schedule-header { padding: 14px 16px; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+  .schedule-header.filter { background: #0a1929; color: var(--accent); border-bottom: 1px solid #1a3a5c; }
+  .schedule-header.memb { background: #1a0a09; color: #ff7675; border-bottom: 1px solid #4a1a1a; }
+  .schedule-list { max-height: 280px; overflow-y: auto; }
+  .schedule-item { padding: 10px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; cursor: pointer; transition: background .1s; }
+  .schedule-item:hover { background: var(--surface3); }
+  .schedule-item:last-child { border-bottom: none; }
+  .s-name { font-weight: 500; font-size: 13px; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .s-phone { font-size: 12px; color: var(--accent); white-space: nowrap; }
+  .s-date { font-size: 11px; color: var(--text3); white-space: nowrap; }
+  .done-btn { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); background: none; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .15s; color: var(--text3); font-size: 11px; }
+  .done-btn:hover { border-color: var(--green); color: var(--green); }
+  .done-btn.done { background: var(--green); border-color: var(--green); color: #fff; }
+
+  /* ── TABLE ── */
+  .toolbar { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 400px; }
+  .search-wrap input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 12px 8px 36px; color: var(--text); font-family: 'Golos Text', sans-serif; font-size: 13px; outline: none; transition: border .15s; }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 14px; }
+  .table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  thead tr { background: var(--surface2); position: sticky; top: 0; z-index: 10; }
+  th { padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .4px; white-space: nowrap; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; }
+  th:hover { color: var(--text); }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface3); }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+  .tag-ok { background: var(--green-bg); color: #4caf50; }
+  .tag-warn { background: var(--orange-bg); color: var(--orange); }
+  .tag-due { background: var(--red-bg); color: var(--red); }
+  .tag-blue { background: #0a1929; color: var(--accent); }
+  .row-action { color: var(--accent); cursor: pointer; font-size: 12px; text-decoration: underline; }
+
+  .pagination { display: flex; align-items: center; gap: 8px; margin-top: 16px; justify-content: flex-end; }
+  .page-btn { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all .15s; }
+  .page-btn:hover, .page-btn.active { background: var(--accent2); color: #fff; border-color: var(--accent2); }
+  .page-info { font-size: 12px; color: var(--text3); }
+
+  /* ── MODAL ── */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-backdrop.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow); animation: slideUp .2s ease; }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .modal-title { font-family: 'Unbounded', sans-serif; font-size: 14px; font-weight: 600; }
+  .modal-close { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: none; color: var(--text2); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+  .modal-close:hover { background: var(--surface3); color: var(--text); }
+  .modal-body { padding: 20px 24px; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+  .detail-field label { display: block; font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 4px; }
+  .detail-field .val { font-size: 13px; font-weight: 500; }
+  .history-list { margin-bottom: 16px; }
+  .history-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--surface2); border-radius: 6px; margin-bottom: 6px; font-size: 12px; }
+  .history-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .form-group { margin-bottom: 14px; }
+  .form-group label { display: block; font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 6px; }
+  .form-control { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; color: var(--text); font-family: 'Golos Text', sans-serif; font-size: 13px; outline: none; transition: border .15s; }
+  .form-control:focus { border-color: var(--accent); }
+  select.form-control { cursor: pointer; }
+  .client-search-result { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; max-height: 180px; overflow-y: auto; margin-top: 4px; display: none; }
+  .client-search-result.open { display: block; }
+  .csr-item { padding: 8px 12px; cursor: pointer; font-size: 13px; border-bottom: 1px solid var(--border); }
+  .csr-item:last-child { border-bottom: none; }
+  .csr-item:hover { background: var(--surface3); }
+  .csr-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* ── TOAST ── */
+  .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
+  .toast { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; font-size: 13px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 10px; animation: toastIn .2s ease; max-width: 320px; }
+  @keyframes toastIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  .toast.success { border-left: 3px solid var(--green); }
+  .toast.error { border-left: 3px solid var(--red); }
+  .toast.info { border-left: 3px solid var(--accent); }
+
+  .empty-state { text-align: center; padding: 40px; color: var(--text3); font-size: 13px; }
+  .empty-state .icon { font-size: 32px; margin-bottom: 8px; }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  @media (max-width: 768px) {
+    .dash-grid { grid-template-columns: 1fr 1fr; }
+    .month-grid { grid-template-columns: 1fr; }
+    .detail-grid { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .topbar { padding: 0 12px; gap: 8px; }
+    .nav-tabs { display: none; }
+    .topbar-right .stat-pill { display: none; }
+    .view { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-logo">Water<span>Life</span></div>
+  <div class="loader-bar"><div class="loader-fill"></div></div>
+  <div class="loader-text">Подключение к базе данных...</div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-title">💧 WaterLife</div>
+    <div class="login-sub">Войдите чтобы продолжить</div>
+    <div class="login-group">
+      <label>Логин</label>
+      <input type="text" class="login-input" id="login-user" placeholder="admin" autocomplete="username">
+    </div>
+    <div class="login-group">
+      <label>Пароль</label>
+      <input type="password" class="login-input" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Войти</button>
+    <div class="login-error" id="login-error">Неверный логин или пароль</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+
+  <div class="topbar">
+    <div class="logo">Water<span>Life</span></div>
+    <div class="sync-dot" id="sync-dot" title="Подключено к базе данных"></div>
+    <nav class="nav-tabs">
+      <button class="nav-tab active" onclick="switchView('dashboard',this)">Дашборд</button>
+      <button class="nav-tab" onclick="switchView('clients',this)">Клиенты</button>
+      <button class="nav-tab" onclick="switchView('schedule',this)">График замен</button>
+      <button class="nav-tab" onclick="switchView('history',this)">История</button>
+    </nav>
+    <div class="topbar-right">
+      <div class="stat-pill">Клиентов: <b id="total-count">—</b></div>
+      <div class="stat-pill">Этот месяц: <b id="month-count">—</b></div>
+      <button class="btn btn-success" onclick="openRecordModal()">+ Записать замену</button>
+      <button class="btn-logout" onclick="doLogout()">Выйти</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="view active" id="view-dashboard">
+    <div class="dash-grid">
+      <div class="kpi-card blue"><div class="kpi-label">Всего клиентов</div><div class="kpi-value" id="kpi-total">—</div><div class="kpi-sub">в базе данных</div></div>
+      <div class="kpi-card orange"><div class="kpi-label">Замены в этом месяце</div><div class="kpi-value" id="kpi-month">—</div><div class="kpi-sub" id="kpi-month-sub">—</div></div>
+      <div class="kpi-card red"><div class="kpi-label">Просрочено</div><div class="kpi-value" id="kpi-overdue">—</div><div class="kpi-sub">замен</div></div>
+      <div class="kpi-card green"><div class="kpi-label">Выполнено сегодня</div><div class="kpi-value" id="kpi-done">0</div><div class="kpi-sub">замен записано</div></div>
+    </div>
+    <div class="section-title">Замены в этом месяце</div>
+    <div class="month-grid">
+      <div class="schedule-card">
+        <div class="schedule-header filter">🔵 Замена фильтров (3 шт)</div>
+        <div class="schedule-list" id="dash-filters"></div>
+      </div>
+      <div class="schedule-card">
+        <div class="schedule-header memb">🔴 Мембрана + насос + бак</div>
+        <div class="schedule-list" id="dash-membs"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIENTS -->
+  <div class="view" id="view-clients">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="client-search" placeholder="Поиск по имени, телефону, адресу..." oninput="renderClientsTable()">
+      </div>
+      <button class="btn btn-primary" onclick="openAddClientModal()">+ Добавить клиента</button>
+      <button class="btn btn-ghost" onclick="exportCSV()">⬇ Экспорт CSV</button>
+    </div>
+    <div class="table-wrap">
+      <table id="clients-table">
+        <thead>
+          <tr>
+            <th onclick="sortBy('id')">№</th>
+            <th onclick="sortBy('name')">ФИО клиента</th>
+            <th onclick="sortBy('phone')">Телефон</th>
+            <th onclick="sortBy('address')">Адрес</th>
+            <th onclick="sortBy('install_date')">Дата установки</th>
+            <th onclick="sortBy('next_filter')">След. замена фильтров</th>
+            <th onclick="sortBy('next_memb')">След. замена мембраны</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="clients-tbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="clients-pagination"></div>
+  </div>
+
+  <!-- SCHEDULE -->
+  <div class="view" id="view-schedule">
+    <div class="toolbar">
+      <select class="form-control" id="sched-month" onchange="renderSchedule()" style="width:180px"></select>
+      <select class="form-control" id="sched-type" onchange="renderSchedule()" style="width:200px">
+        <option value="all">Все типы замен</option>
+        <option value="filter">Только фильтры</option>
+        <option value="memb">Только мембрана</option>
+      </select>
+      <span class="page-info" id="sched-count"></span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ФИО клиента</th>
+            <th>Телефон</th>
+            <th>Адрес</th>
+            <th>Тип замены</th>
+            <th>Дата замены</th>
+            <th>✓</th>
+          </tr>
+        </thead>
+        <tbody id="sched-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="view" id="view-history">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="hist-search" placeholder="Поиск в истории..." oninput="renderHistory()">
+      </div>
+      <span class="page-info" id="hist-count"></span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Дата записи</th>
+            <th>ФИО клиента</th>
+            <th>Телефон</th>
+            <th>Тип замены</th>
+            <th>Дата замены</th>
+            <th>Примечание</th>
+          </tr>
+        </thead>
+        <tbody id="hist-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- RECORD MODAL -->
+<div class="modal-backdrop" id="record-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Записать замену</div>
+      <button class="modal-close" onclick="closeModal('record-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group" style="position:relative">
+        <label>Клиент *</label>
+        <input type="text" class="form-control" id="rec-client-input" placeholder="Начните вводить имя..." oninput="searchClients(this.value)" autocomplete="off">
+        <div class="client-search-result" id="client-suggestions"></div>
+      </div>
+      <div id="rec-client-info" style="background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:14px;display:none;font-size:12px;color:var(--text2);line-height:1.6"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Дата замены *</label>
+          <input type="date" class="form-control" id="rec-date">
+        </div>
+        <div class="form-group">
+          <label>Тип замены *</label>
+          <select class="form-control" id="rec-type">
+            <option value="">Выберите...</option>
+            <option value="filter">🔵 3 фильтра</option>
+            <option value="memb">🔴 Мембрана + насос + бак</option>
+            <option value="both">🟢 Фильтры + мембрана + насос + бак</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Примечание</label>
+        <input type="text" class="form-control" id="rec-note" placeholder="Опционально...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('record-modal')">Отмена</button>
+      <button class="btn btn-success" onclick="saveRecord()">✓ Записать замену</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-backdrop" id="detail-modal">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-header">
+      <div class="modal-title" id="detail-title">Карточка клиента</div>
+      <button class="modal-close" onclick="closeModal('detail-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="detail-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('detail-modal')">Закрыть</button>
+      <button class="btn btn-primary" onclick="openRecordFromDetail()">+ Записать замену</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CLIENT MODAL -->
+<div class="modal-backdrop" id="add-client-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Добавить клиента</div>
+      <button class="modal-close" onclick="closeModal('add-client-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>ФИО *</label><input type="text" class="form-control" id="add-name" placeholder="Иванов Иван Иванович"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Телефон</label><input type="text" class="form-control" id="add-phone" placeholder="87XXXXXXXXX"></div>
+        <div class="form-group"><label>Дата установки *</label><input type="date" class="form-control" id="add-date"></div>
+      </div>
+      <div class="form-group"><label>Адрес</label><input type="text" class="form-control" id="add-address" placeholder="ул. Примерная 1 кв 1"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Сумма (₸)</label><input type="number" class="form-control" id="add-price" placeholder="200000"></div>
+        <div class="form-group"><label>Дилер</label><input type="text" class="form-control" id="add-dealer" placeholder="Имя дилера"></div>
+      </div>
+      <div class="form-group"><label>Примечание</label><input type="text" class="form-control" id="add-note"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('add-client-modal')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveNewClient()">Добавить клиента</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ══════════════════════════════════════════
+//  НАСТРОЙКИ — ВСТАВЬТЕ ВАШИ КЛЮЧИ SUPABASE
+// ══════════════════════════════════════════
+const SUPABASE_URL = 'https://mycoiwejoyuqznwwbrso.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_OCptnUUgz42Pvop8o4AmFQ_lHTMW1s0';
+
+// Логин и пароль для входа (можете изменить)
+const USERS = {
+  'admin': 'waterlife2026',
+  'manager': 'dinara1984'
+};
+
+// ══════════════════════════════════════════
+//  SUPABASE API
+// ══════════════════════════════════════════
+const db = {
+  async query(table, params = '') {
+    setSyncing(true);
+    try {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}${params}`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' }
+      });
+      if (!r.ok) throw new Error(await r.text());
+      return await r.json();
+    } catch(e) { setError(); throw e; }
+    finally { setSyncing(false); }
+  },
+  async insert(table, data) {
+    setSyncing(true);
+    try {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+        body: JSON.stringify(data)
+      });
+      if (!r.ok) throw new Error(await r.text());
+      return await r.json();
+    } catch(e) { setError(); throw e; }
+    finally { setSyncing(false); }
+  },
+  async update(table, id, data) {
+    setSyncing(true);
+    try {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+        body: JSON.stringify(data)
+      });
+      if (!r.ok) throw new Error(await r.text());
+      return await r.json();
+    } catch(e) { setError(); throw e; }
+    finally { setSyncing(false); }
+  }
+};
+
+function setSyncing(v) { document.getElementById('sync-dot')?.classList.toggle('syncing', v); }
+function setError() { const d = document.getElementById('sync-dot'); if(d) { d.className = 'sync-dot error'; d.title = 'Ошибка подключения'; } }
+
+// ══════════════════════════════════════════
+//  ДАННЫЕ
+// ══════════════════════════════════════════
+const RAW_DATA = [{"id":1,"name":"Коорпарация стройматериалов","address":"Азербайджанская 48","phone":"50-10-17","price":0,"dealer":"","install_date":"2012-07-30","filter_changes":["2012-07-30"],"memb_changes":["2012-07-30"],"next_filter":"2013-01-30","next_memb":"2014-07-30","notes":"08.06.2022:123,4,насос"},{"id":2,"name":"Ажикова Динара Сагимбаевна","address":"мкр Самал 1-58 дом","phone":"87776537293","price":0,"dealer":"","install_date":"2012-11-09","filter_changes":["2012-11-09"],"memb_changes":["2012-11-09"],"next_filter":"2013-05-09","next_memb":"2014-11-09","notes":""},{"id":3,"name":"Кисаева Айнагуль Нурлановна","address":"Алмазова 25","phone":"87017820182","price":0,"dealer":"","install_date":"2012-12-09","filter_changes":["2012-12-09"],"memb_changes":["2012-12-09"],"next_filter":"2013-06-09","next_memb":"2014-12-09","notes":""},{"id":4,"name":"Неверова Марина Анатольевна","address":"Кердери 131-16","phone":"87773192020","price":0,"dealer":"","install_date":"2013-01-21","filter_changes":["2013-01-21"],"memb_changes":["2013-01-21"],"next_filter":"2013-07-21","next_memb":"2015-01-21","notes":""},{"id":5,"name":"Спирин Валерий Павлович","address":"Карачиганакская 38","phone":"87013450839","price":0,"dealer":"","install_date":"2013-02-02","filter_changes":["2013-02-02"],"memb_changes":["2013-02-02"],"next_filter":"2013-08-02","next_memb":"2015-02-02","notes":""},{"id":6,"name":"Мураткалиева Гульбагида Якиевна","address":"Ж-Х 33/2-6","phone":"87784700280","price":0,"dealer":"","install_date":"2013-03-19","filter_changes":["2013-03-19"],"memb_changes":["2013-03-19"],"next_filter":"2013-09-19","next_memb":"2015-03-19","notes":""},{"id":7,"name":"Хуспанова Жулдыз Казиевна","address":"Тайманова 167","phone":"87078965576","price":0,"dealer":"","install_date":"2013-04-22","filter_changes":["2013-04-22"],"memb_changes":["2013-04-22"],"next_filter":"2013-10-22","next_memb":"2015-04-22","notes":"28.09.22 : 1,2,3"},{"id":8,"name":"Иргалиев Асылбек Сапаргалиевич","address":"Нижняя 18","phone":"87769229900","price":0,"dealer":"","install_date":"2013-04-25","filter_changes":["2013-04-25"],"memb_changes":["2013-04-25"],"next_filter":"2013-10-25","next_memb":"2015-04-25","notes":""},{"id":9,"name":"Амантиева Ботакоз Касымовна","address":"4 стр переулок 3-7","phone":"87774792778","price":0,"dealer":"","install_date":"2013-05-08","filter_changes":["2013-05-08"],"memb_changes":["2013-05-08"],"next_filter":"2013-11-08","next_memb":"2015-05-08","notes":""},{"id":10,"name":"Мураткалиева Ольга Викторовна","address":"Урдинская 1/3-26","phone":"87785111515","price":0,"dealer":"","install_date":"2013-07-19","filter_changes":["2013-07-19"],"memb_changes":["2013-07-19"],"next_filter":"2014-01-19","next_memb":"2015-07-19","notes":"02.06.2022: 123"},{"id":11,"name":"Аульбаев Серик Саттыгулович","address":"Согласия 18","phone":"87016762393","price":0,"dealer":"","install_date":"2013-11-05","filter_changes":["2013-11-05"],"memb_changes":["2013-11-05"],"next_filter":"2014-05-05","next_memb":"2015-11-05","notes":"2.11.22: Бак-18000"},{"id":12,"name":"Ескалиева Гульжиян Абиловна","address":"Самарская 103-30","phone":"87774684037","price":0,"dealer":"","install_date":"2013-08-23","filter_changes":["2013-08-23"],"memb_changes":["2013-08-23"],"next_filter":"2014-02-23","next_memb":"2015-08-23","notes":"1.11.22: 1,2,3"},{"id":13,"name":"Кдиргужин Миржан Муратович","address":"Единство 25","phone":"87775881861","price":0,"dealer":"","install_date":"2014-05-30","filter_changes":["2014-05-30"],"memb_changes":["2014-05-30"],"next_filter":"2014-11-30","next_memb":"2016-05-30","notes":"5.12.21. 123"},{"id":14,"name":"Сариева Айнаш Демесиновна","address":"7-25-41","phone":"87775644817","price":0,"dealer":"","install_date":"2023-06-02","filter_changes":["2023-06-02"],"memb_changes":["2023-06-02"],"next_filter":"2023-12-02","next_memb":"2025-06-02","notes":""},{"id":15,"name":"Венера","address":"Абдолова 25","phone":"87751571982","price":0,"dealer":"","install_date":"2024-11-30","filter_changes":["2024-11-30"],"memb_changes":["2024-11-30"],"next_filter":"2025-05-30","next_memb":"2026-11-30","notes":""},{"id":16,"name":"Батыржан","address":"Дауымова 69/5-87","phone":"87760009602","price":0,"dealer":"","install_date":"2024-02-09","filter_changes":["2024-02-09"],"memb_changes":["2024-02-09"],"next_filter":"2024-08-09","next_memb":"2026-02-09","notes":""},{"id":17,"name":"Елдос","address":"Курмангалиева 73","phone":"87751300033","price":0,"dealer":"","install_date":"2023-09-15","filter_changes":["2023-09-15"],"memb_changes":["2023-09-15"],"next_filter":"2024-03-15","next_memb":"2025-09-15","notes":""},{"id":18,"name":"Бибинур","address":"Курмангалиева 28","phone":"87769051515","price":0,"dealer":"","install_date":"2023-12-25","filter_changes":["2023-12-25"],"memb_changes":["2023-12-25"],"next_filter":"2024-06-25","next_memb":"2025-12-25","notes":""},{"id":19,"name":"Султанова Фарида Тайгалиевна","address":"Тайманова 176 кв 47","phone":"87011751027","price":0,"dealer":"","install_date":"2014-09-21","filter_changes":["2014-09-21"],"memb_changes":["2014-09-21"],"next_filter":"2015-03-21","next_memb":"2016-09-21","notes":""},{"id":20,"name":"Тастемирова Улболсын Газизовна","address":"мкр. Арман. Кусыпкалиева 25","phone":"87055708228","price":0,"dealer":"","install_date":"2018-12-08","filter_changes":["2018-12-08"],"memb_changes":["2018-12-08"],"next_filter":"2019-06-08","next_memb":"2020-12-08","notes":""}];
+
+let clients = [];
+let serviceHistory = [];
+let sortField = 'install_date', sortAsc = false;
+let clientPage = 1;
+const pageSize = 50;
+let selectedClientId = null;
+let detailClientId = null;
+let doneThisSession = 0;
+let dataLoaded = false;
+
+const today = new Date(); today.setHours(0,0,0,0);
+const todayStr = today.toISOString().split('T')[0];
+
+// ══════════════════════════════════════════
+//  АВТОРИЗАЦИЯ
+// ══════════════════════════════════════════
+function doLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if (USERS[user] && USERS[user] === pass) {
+    sessionStorage.setItem('wl_user', user);
+    document.getElementById('login-screen').classList.remove('show');
+    document.getElementById('app').style.display = 'block';
+    loadData();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+    setTimeout(() => document.getElementById('login-error').style.display = 'none', 3000);
+  }
+}
+function doLogout() {
+  sessionStorage.removeItem('wl_user');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').classList.add('show');
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+}
+
+// ══════════════════════════════════════════
+//  ЗАГРУЗКА ДАННЫХ
+// ══════════════════════════════════════════
+async function loadData() {
+  toast('Загрузка данных...', 'info');
+  try {
+    // Пробуем загрузить из Supabase
+    if (SUPABASE_URL !== 'https://mycoiwejoyuqznwwbrso.supabase.co') {
+      const [cl, hist] = await Promise.all([
+        db.query('clients', '?order=id.asc&limit=2000'),
+        db.query('service_history', '?order=recorded_at.desc&limit=1000')
+      ]);
+      clients = cl;
+      serviceHistory = hist;
+      dataLoaded = true;
+      toast('✓ Данные загружены из базы данных', 'success');
+    } else {
+      // Используем встроенные тестовые данные
+      clients = RAW_DATA;
+      serviceHistory = [];
+      toast('⚠ Работаем с тестовыми данными. Вставьте ключи Supabase.', 'info');
+    }
+  } catch(e) {
+    // Fallback на встроенные данные
+    clients = RAW_DATA;
+    serviceHistory = [];
+    toast('⚠ Не удалось подключиться к БД. Работаем в офлайн режиме.', 'error');
+  }
+  initSchedMonths();
+  computeStats();
+  renderClientsTable();
+}
+
+async function importAllData() {
+  // Импорт всех 755 клиентов в Supabase (вызывается вручную из консоли)
+  if (SUPABASE_URL === 'https://mycoiwejoyuqznwwbrso.supabase.co') { toast('Сначала вставьте ключи Supabase', 'error'); return; }
+  toast('Импорт клиентов...', 'info');
+  try {
+    const chunks = [];
+    for (let i = 0; i < RAW_DATA.length; i += 50) chunks.push(RAW_DATA.slice(i, i+50));
+    for (const chunk of chunks) await db.insert('clients', chunk);
+    toast(`✓ Импортировано ${RAW_DATA.length} клиентов`, 'success');
+    await loadData();
+  } catch(e) { toast('Ошибка импорта: ' + e.message, 'error'); }
+}
+
+// ══════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════
+function parseDate(s) { if (!s) return null; const d = new Date(s + 'T00:00:00'); return isNaN(d) ? null : d; }
+function addMonths(d, m) { const nd = new Date(d); nd.setMonth(nd.getMonth() + m); return nd; }
+function addYears(d, y) { const nd = new Date(d); nd.setFullYear(nd.getFullYear() + y); return nd; }
+function fmtDate(s) {
+  if (!s) return '—';
+  const d = parseDate(s); if (!d) return s;
+  return d.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit', year:'numeric'});
+}
+function dateStatus(s) {
+  const d = parseDate(s); if (!d) return 'none';
+  const diff = Math.floor((d - today) / 864e5);
+  if (diff < 0) return 'overdue'; if (diff <= 30) return 'due'; if (diff <= 60) return 'warn'; return 'ok';
+}
+function statusTag(s) {
+  if (!s) return '';
+  const st = dateStatus(s), d = fmtDate(s);
+  const map = { overdue: ['tag-due','⚠ '+d], due: ['tag-warn','Скоро: '+d], warn: ['tag-warn', d], ok: ['tag-ok', d] };
+  const [cls, label] = map[st] || ['', d];
+  return `<span class="tag ${cls}">${label}</span>`;
+}
+
+// ══════════════════════════════════════════
+//  НАВИГАЦИЯ
+// ══════════════════════════════════════════
+function switchView(name, el) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+  if (name === 'clients') renderClientsTable();
+  if (name === 'schedule') renderSchedule();
+  if (name === 'history') renderHistory();
+}
+
+// ══════════════════════════════════════════
+//  KPI / ДАШБОРД
+// ══════════════════════════════════════════
+function computeStats() {
+  const nm = today.getMonth(), ny = today.getFullYear();
+  let filterDue = [], membDue = [], overdue = 0;
+  clients.forEach(c => {
+    const nf = parseDate(c.next_filter);
+    if (nf) { if (nf.getMonth()===nm && nf.getFullYear()===ny) filterDue.push(c); if (nf < today) overdue++; }
+    const nm2 = parseDate(c.next_memb);
+    if (nm2) { if (nm2.getMonth()===nm && nm2.getFullYear()===ny) membDue.push(c); if (nm2 < today) overdue++; }
+  });
+  document.getElementById('kpi-total').textContent = clients.length;
+  document.getElementById('kpi-month').textContent = filterDue.length + membDue.length;
+  document.getElementById('kpi-month-sub').textContent = `${filterDue.length} фильтра · ${membDue.length} мембрана`;
+  document.getElementById('kpi-overdue').textContent = overdue;
+  document.getElementById('kpi-done').textContent = doneThisSession;
+  document.getElementById('total-count').textContent = clients.length;
+  document.getElementById('month-count').textContent = filterDue.length + membDue.length;
+  renderDashSchedule(filterDue, membDue);
+}
+
+function renderDashSchedule(filterDue, membDue) {
+  const render = (list, el) => {
+    if (!list.length) { el.innerHTML = '<div class="empty-state"><div class="icon">✓</div>Замен нет</div>'; return; }
+    el.innerHTML = list.map(c => `
+      <div class="schedule-item" onclick="openDetail(${c.id})">
+        <div class="s-name">${c.name}</div>
+        <div class="s-phone">${c.phone||'—'}</div>
+        <div class="s-date">${fmtDate(c.next_filter||c.next_memb)}</div>
+        <button class="done-btn ${c._done?'done':''}" onclick="markDash(event,${c.id})">${c._done?'✓':''}</button>
+      </div>`).join('');
+  };
+  render(filterDue, document.getElementById('dash-filters'));
+  render(membDue, document.getElementById('dash-membs'));
+}
+
+function markDash(e, id) {
+  e.stopPropagation();
+  const c = clients.find(x => x.id === id);
+  if (c) { c._done = !c._done; doneThisSession += c._done ? 1 : -1; computeStats(); }
+}
+
+// ══════════════════════════════════════════
+//  ТАБЛИЦА КЛИЕНТОВ
+// ══════════════════════════════════════════
+function getFiltered() {
+  const q = (document.getElementById('client-search')?.value||'').toLowerCase();
+  let arr = [...clients];
+  if (q) arr = arr.filter(c => (c.name||'').toLowerCase().includes(q)||(c.phone||'').toLowerCase().includes(q)||(c.address||'').toLowerCase().includes(q));
+  arr.sort((a,b) => {
+    let va = a[sortField]||'', vb = b[sortField]||'';
+    if (typeof va === 'number') return sortAsc ? va-vb : vb-va;
+    return sortAsc ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
+  });
+  return arr;
+}
+function sortBy(f) { sortField===f ? sortAsc=!sortAsc : (sortField=f, sortAsc=true); renderClientsTable(); }
+
+function renderClientsTable() {
+  const filtered = getFiltered(), total = filtered.length;
+  const pages = Math.ceil(total/pageSize)||1;
+  if (clientPage > pages) clientPage = 1;
+  const slice = filtered.slice((clientPage-1)*pageSize, clientPage*pageSize);
+  document.getElementById('clients-tbody').innerHTML = slice.map(c => `
+    <tr>
+      <td style="color:var(--text3)">${c.id}</td>
+      <td style="font-weight:500" title="${c.name}">${c.name}</td>
+      <td style="color:var(--accent)">${c.phone||'—'}</td>
+      <td style="color:var(--text2)" title="${c.address||''}">${c.address||'—'}</td>
+      <td style="color:var(--text3)">${fmtDate(c.install_date)}</td>
+      <td>${statusTag(c.next_filter)}</td>
+      <td>${statusTag(c.next_memb)}</td>
+      <td><span class="row-action" onclick="openDetail(${c.id})">Открыть</span></td>
+    </tr>`).join('') || '<tr><td colspan="8" class="empty-state">Ничего не найдено</td></tr>';
+  let pag = `<span class="page-info">${total} клиентов · стр ${clientPage} из ${pages}</span>`;
+  if (pages>1) {
+    pag += `<button class="page-btn" onclick="goPage(${clientPage-1})" ${clientPage===1?'disabled':''}>‹</button>`;
+    const s=Math.max(1,clientPage-2), en=Math.min(pages,clientPage+2);
+    for(let i=s;i<=en;i++) pag+=`<button class="page-btn ${i===clientPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+    pag+=`<button class="page-btn" onclick="goPage(${clientPage+1})" ${clientPage===pages?'disabled':''}>›</button>`;
+  }
+  document.getElementById('clients-pagination').innerHTML = pag;
+}
+function goPage(p) { const f=getFiltered(),pages=Math.ceil(f.length/pageSize)||1; clientPage=Math.max(1,Math.min(pages,p)); renderClientsTable(); }
+
+// ══════════════════════════════════════════
+//  КАРТОЧКА КЛИЕНТА
+// ══════════════════════════════════════════
+function openDetail(id) {
+  const c = clients.find(x=>x.id===id); if(!c) return;
+  detailClientId = id;
+  document.getElementById('detail-title').textContent = c.name;
+  const fh = (c.filter_changes||[]).slice(1);
+  const mh = (c.memb_changes||[]).slice(1);
+  const sh = serviceHistory.filter(h=>h.client_id===id);
+  document.getElementById('detail-body').innerHTML = `
+    <div class="detail-grid">
+      <div class="detail-field"><label>Телефон</label><div class="val" style="color:var(--accent)">${c.phone||'—'}</div></div>
+      <div class="detail-field"><label>Адрес</label><div class="val">${c.address||'—'}</div></div>
+      <div class="detail-field"><label>Дата установки</label><div class="val">${fmtDate(c.install_date)}</div></div>
+      <div class="detail-field"><label>Сумма</label><div class="val">${c.price?c.price.toLocaleString('ru')+' ₸':'—'}</div></div>
+      <div class="detail-field"><label>След. замена фильтров</label><div class="val">${statusTag(c.next_filter)||'—'}</div></div>
+      <div class="detail-field"><label>След. замена мембраны</label><div class="val">${statusTag(c.next_memb)||'—'}</div></div>
+      ${c.notes?`<div class="detail-field" style="grid-column:1/-1"><label>Примечания</label><div class="val" style="color:var(--text2)">${c.notes}</div></div>`:''}
+    </div>
+    <div class="section-title" style="font-size:11px">История замен</div>
+    <div class="history-list">
+      ${!fh.length&&!mh.length&&!sh.length
+        ?'<div style="color:var(--text3);font-size:12px;padding:8px">Замен не записано</div>'
+        :[...fh.map(d=>`<div class="history-item"><div class="history-dot" style="background:var(--accent)"></div><div style="flex:1">Замена фильтров</div><div style="color:var(--text3);font-size:11px">${fmtDate(d)}</div></div>`),
+          ...mh.map(d=>`<div class="history-item"><div class="history-dot" style="background:var(--red)"></div><div style="flex:1">Мембрана + насос + бак</div><div style="color:var(--text3);font-size:11px">${fmtDate(d)}</div></div>`),
+          ...sh.map(h=>`<div class="history-item" style="background:var(--surface3)"><div class="history-dot" style="background:var(--green)"></div><div style="flex:1">${h.type==='filter'?'Замена фильтров':h.type==='memb'?'Мембрана + насос + бак':'Фильтры + мембрана'}</div><div style="color:var(--text3);font-size:11px">${fmtDate(h.date)}</div></div>`)
+        ].join('')
+      }
+    </div>`;
+  document.getElementById('detail-modal').classList.add('open');
+}
+function openRecordFromDetail() { closeModal('detail-modal'); const c=clients.find(x=>x.id===detailClientId); if(c){document.getElementById('rec-client-input').value=c.name;selectedClientId=c.id;showClientInfo(c);} openRecordModal(); }
+
+// ══════════════════════════════════════════
+//  ЗАПИСЬ ЗАМЕНЫ
+// ══════════════════════════════════════════
+function openRecordModal() {
+  document.getElementById('record-modal').classList.add('open');
+  document.getElementById('rec-date').value = todayStr;
+  document.getElementById('client-suggestions').classList.remove('open');
+}
+function searchClients(q) {
+  selectedClientId=null; hideClientInfo();
+  const sug=document.getElementById('client-suggestions');
+  if(q.length<2){sug.classList.remove('open');return;}
+  const m=clients.filter(c=>(c.name||'').toLowerCase().includes(q.toLowerCase())).slice(0,8);
+  if(!m.length){sug.classList.remove('open');return;}
+  sug.innerHTML=m.map(c=>`<div class="csr-item" onclick="selectClient(${c.id})"><div>${c.name}</div><div class="csr-sub">${c.phone||''} · ${c.address||''}</div></div>`).join('');
+  sug.classList.add('open');
+}
+function selectClient(id) {
+  const c=clients.find(x=>x.id===id); if(!c)return;
+  selectedClientId=id;
+  document.getElementById('rec-client-input').value=c.name;
+  document.getElementById('client-suggestions').classList.remove('open');
+  showClientInfo(c);
+}
+function showClientInfo(c) {
+  const el=document.getElementById('rec-client-info');
+  el.style.display='block';
+  el.innerHTML=`📍 ${c.address||'—'} &nbsp;|&nbsp; 📞 ${c.phone||'—'}<br>🔵 Посл. замена фильтров: <b>${fmtDate((c.filter_changes||[]).slice(-1)[0])||'—'}</b> · след.: <b>${fmtDate(c.next_filter)||'—'}</b><br>🔴 Посл. замена мембраны: <b>${fmtDate((c.memb_changes||[]).slice(-1)[0])||'—'}</b> · след.: <b>${fmtDate(c.next_memb)||'—'}</b>`;
+}
+function hideClientInfo() { document.getElementById('rec-client-info').style.display='none'; }
+
+async function saveRecord() {
+  const type=document.getElementById('rec-type').value;
+  const dateVal=document.getElementById('rec-date').value;
+  const note=document.getElementById('rec-note').value;
+  if(!selectedClientId){toast('Выберите клиента из списка','error');return;}
+  if(!dateVal){toast('Укажите дату замены','error');return;}
+  if(!type){toast('Выберите тип замены','error');return;}
+  const c=clients.find(x=>x.id===selectedClientId); if(!c)return;
+  const d=parseDate(dateVal);
+  const updates={};
+  if(type==='filter'||type==='both'){
+    c.filter_changes=[...(c.filter_changes||[]),dateVal];
+    c.next_filter=addMonths(d,6).toISOString().split('T')[0];
+    updates.filter_changes=c.filter_changes; updates.next_filter=c.next_filter;
+  }
+  if(type==='memb'||type==='both'){
+    c.memb_changes=[...(c.memb_changes||[]),dateVal];
+    c.next_memb=addYears(d,2).toISOString().split('T')[0];
+    updates.memb_changes=c.memb_changes; updates.next_memb=c.next_memb;
+  }
+  const histEntry={client_id:c.id,client_name:c.name,phone:c.phone,type,date:dateVal,note,recorded_at:new Date().toISOString()};
+  serviceHistory.unshift(histEntry);
+  doneThisSession++;
+  // Сохраняем в Supabase если подключено
+  if(SUPABASE_URL!=='ВСТАВЬТЕ_СЮДА_PROJECT_URL'){
+    try { await Promise.all([db.update('clients',c.id,updates), db.insert('service_history',histEntry)]); }
+    catch(e){ toast('Ошибка сохранения в БД','error'); }
+  }
+  computeStats(); renderClientsTable();
+  closeModal('record-modal');
+  document.getElementById('rec-client-input').value='';
+  document.getElementById('rec-type').value='';
+  document.getElementById('rec-note').value='';
+  selectedClientId=null; hideClientInfo();
+  const tl=type==='filter'?'3 фильтра':type==='memb'?'мембрана+насос+бак':'фильтры+мембрана';
+  toast(`✓ Замена записана: ${c.name} — ${tl}`,'success');
+}
+
+// ══════════════════════════════════════════
+//  ДОБАВИТЬ КЛИЕНТА
+// ══════════════════════════════════════════
+function openAddClientModal() { document.getElementById('add-client-modal').classList.add('open'); document.getElementById('add-date').value=todayStr; }
+
+async function saveNewClient() {
+  const name=document.getElementById('add-name').value.trim();
+  const phone=document.getElementById('add-phone').value.trim();
+  const date=document.getElementById('add-date').value;
+  const address=document.getElementById('add-address').value.trim();
+  const price=parseInt(document.getElementById('add-price').value)||0;
+  const dealer=document.getElementById('add-dealer').value.trim();
+  const note=document.getElementById('add-note').value.trim();
+  if(!name){toast('Введите ФИО клиента','error');return;}
+  if(!date){toast('Укажите дату установки','error');return;}
+  const d=parseDate(date);
+  const newId=Math.max(0,...clients.map(c=>c.id))+1;
+  const nc={id:newId,name,phone,address,price,dealer,install_date:date,filter_changes:[date],memb_changes:[date],next_filter:addMonths(d,6).toISOString().split('T')[0],next_memb:addYears(d,2).toISOString().split('T')[0],notes:note};
+  clients.push(nc);
+  if(SUPABASE_URL!=='ВСТАВЬТЕ_СЮДА_PROJECT_URL'){
+    try { await db.insert('clients',nc); }
+    catch(e){ toast('Ошибка сохранения в БД','error'); }
+  }
+  computeStats(); renderClientsTable();
+  closeModal('add-client-modal');
+  ['add-name','add-phone','add-address','add-price','add-dealer','add-note'].forEach(id=>document.getElementById(id).value='');
+  toast(`✓ Клиент добавлен: ${name}`,'success');
+}
+
+// ══════════════════════════════════════════
+//  ГРАФИК ЗАМЕН
+// ══════════════════════════════════════════
+function initSchedMonths() {
+  const sel=document.getElementById('sched-month');
+  const months=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  sel.innerHTML='';
+  for(let y=today.getFullYear();y<=today.getFullYear()+2;y++){
+    for(let m=0;m<12;m++){
+      if(y===today.getFullYear()&&m<today.getMonth())continue;
+      const opt=document.createElement('option');
+      opt.value=`${y}-${m}`; opt.textContent=`${months[m]} ${y}`;
+      if(y===today.getFullYear()&&m===today.getMonth())opt.selected=true;
+      sel.appendChild(opt);
+    }
+  }
+  renderSchedule();
+}
+
+function renderSchedule() {
+  const [year,month]=document.getElementById('sched-month').value.split('-').map(Number);
+  const type=document.getElementById('sched-type').value;
+  const rows=[];
+  clients.forEach(c=>{
+    if(type!=='memb'){const nf=parseDate(c.next_filter);if(nf&&nf.getFullYear()===year&&nf.getMonth()===month)rows.push({c,kind:'filter',date:c.next_filter});}
+    if(type!=='filter'){const nm=parseDate(c.next_memb);if(nm&&nm.getFullYear()===year&&nm.getMonth()===month)rows.push({c,kind:'memb',date:c.next_memb});}
+  });
+  rows.sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById('sched-count').textContent=`${rows.length} замен`;
+  document.getElementById('sched-tbody').innerHTML=rows.map(r=>`
+    <tr>
+      <td style="font-weight:500">${r.c.name}</td>
+      <td style="color:var(--accent)">${r.c.phone||'—'}</td>
+      <td style="color:var(--text2)">${r.c.address||'—'}</td>
+      <td>${r.kind==='filter'?'<span class="tag tag-blue">🔵 3 фильтра</span>':'<span class="tag tag-due">🔴 Мембрана+насос+бак</span>'}</td>
+      <td>${fmtDate(r.date)}</td>
+      <td><button class="done-btn" onclick="quickRecord(${r.c.id},'${r.kind}','${r.date}',this)"></button></td>
+    </tr>`).join('')||'<tr><td colspan="6" class="empty-state">Замен в этом периоде нет</td></tr>';
+}
+
+async function quickRecord(id,kind,date,btn) {
+  const c=clients.find(x=>x.id===id); if(!c)return;
+  const d=parseDate(date); const updates={};
+  if(kind==='filter'){c.filter_changes=[...(c.filter_changes||[]),date];c.next_filter=addMonths(d,6).toISOString().split('T')[0];updates.filter_changes=c.filter_changes;updates.next_filter=c.next_filter;}
+  else{c.memb_changes=[...(c.memb_changes||[]),date];c.next_memb=addYears(d,2).toISOString().split('T')[0];updates.memb_changes=c.memb_changes;updates.next_memb=c.next_memb;}
+  const h={client_id:id,client_name:c.name,phone:c.phone,type:kind,date,recorded_at:new Date().toISOString()};
+  serviceHistory.unshift(h); doneThisSession++;
+  btn.classList.add('done'); btn.textContent='✓';
+  if(SUPABASE_URL!=='ВСТАВЬТЕ_СЮДА_PROJECT_URL'){
+    try { await Promise.all([db.update('clients',id,updates),db.insert('service_history',h)]); }
+    catch(e){ toast('Ошибка сохранения','error'); }
+  }
+  computeStats(); toast(`✓ ${c.name} — замена отмечена`,'success');
+}
+
+// ══════════════════════════════════════════
+//  ИСТОРИЯ
+// ══════════════════════════════════════════
+function renderHistory() {
+  const q=(document.getElementById('hist-search')?.value||'').toLowerCase();
+  let list=[...serviceHistory];
+  if(q)list=list.filter(h=>(h.client_name||'').toLowerCase().includes(q));
+  document.getElementById('hist-count').textContent=`${list.length} записей`;
+  document.getElementById('hist-tbody').innerHTML=list.map(h=>`
+    <tr>
+      <td style="color:var(--text3)">${new Date(h.recorded_at).toLocaleString('ru-RU')}</td>
+      <td style="font-weight:500">${h.client_name||h.clientName||'—'}</td>
+      <td style="color:var(--accent)">${h.phone||'—'}</td>
+      <td>${h.type==='filter'?'<span class="tag tag-blue">🔵 3 фильтра</span>':h.type==='memb'?'<span class="tag tag-due">🔴 Мембрана+насос+бак</span>':'<span class="tag tag-ok">🟢 Оба типа</span>'}</td>
+      <td>${fmtDate(h.date)}</td>
+      <td style="color:var(--text3)">${h.note||''}</td>
+    </tr>`).join('')||'<tr><td colspan="6" class="empty-state">История пуста</td></tr>';
+}
+
+// ══════════════════════════════════════════
+//  ЭКСПОРТ CSV
+// ══════════════════════════════════════════
+function exportCSV() {
+  const rows=[['№','ФИО','Телефон','Адрес','Дата установки','Последняя замена фильтров','Следующая замена фильтров','Последняя замена мембраны','Следующая замена мембраны']];
+  clients.forEach(c=>rows.push([c.id,c.name,c.phone,c.address,c.install_date,(c.filter_changes||[]).slice(-1)[0]||'',c.next_filter||'',(c.memb_changes||[]).slice(-1)[0]||'',c.next_memb||'']));
+  const csv=rows.map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv); a.download='waterlife_клиенты.csv'; a.click();
+  toast('✓ CSV файл скачан','success');
+}
+
+// ══════════════════════════════════════════
+//  МОДАЛЬНЫЕ ОКНА / ТОСТЫ
+// ══════════════════════════════════════════
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-backdrop').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+function toast(msg,type='success'){
+  const el=document.createElement('div'); el.className=`toast ${type}`; el.textContent=msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(()=>el.remove(),4000);
+}
+
+// ══════════════════════════════════════════
+//  ЗАПУСК
+// ══════════════════════════════════════════
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    document.getElementById('loader').style.display='none';
+    const user=sessionStorage.getItem('wl_user');
+    if(user && USERS[user]){
+      document.getElementById('app').style.display='block';
+      loadData();
+    } else {
+      document.getElementById('login-screen').classList.add('show');
+    }
+  },1800);
+});
+</script>
+</body>
+</html>
