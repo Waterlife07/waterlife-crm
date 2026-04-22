@@ -277,6 +277,7 @@ select.form-control{cursor:pointer}
     <div class="stat-pill">Месяц: <b id="month-count">—</b></div>
     <button class="btn btn-success" onclick="openRecordModal()">+ Замена</button>
     <button class="btn btn-primary" onclick="openPlanModal()">📅 План</button>
+    <button class="btn btn-warn" onclick="pushToSupabase()" id="push-btn" style="display:none">⬆ Загрузить в БД</button>
     <button class="btn-logout" onclick="doLogout()">Выйти</button>
   </div>
 </div>
@@ -564,7 +565,7 @@ const USE_SUPABASE = true;
 const db = {
   async q(table, params=''){
     const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}${params}`, {
-      headers: {'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'}
+      headers: {'apikey':SUPABASE_KEY,'Content-Type':'application/json'}
     });
     if(!r.ok) throw new Error(await r.text());
     return r.json();
@@ -572,7 +573,7 @@ const db = {
   async insert(table, data){
     const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
       method:'POST',
-      headers: {'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'return=representation'},
+      headers: {'apikey':SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
       body: JSON.stringify(data)
     });
     if(!r.ok) throw new Error(await r.text());
@@ -581,7 +582,7 @@ const db = {
   async update(table, id, data){
     const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
       method:'PATCH',
-      headers: {'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'return=representation'},
+      headers: {'apikey':SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
       body: JSON.stringify(data)
     });
     if(!r.ok) throw new Error(await r.text());
@@ -590,14 +591,14 @@ const db = {
   async delete(table, id){
     const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
       method:'DELETE',
-      headers: {'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}
+      headers: {'apikey':SUPABASE_KEY}
     });
     if(!r.ok) throw new Error(await r.text());
   },
   async upsert(table, data, onConflict='id'){
     const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?on_conflict=${onConflict}`, {
       method:'POST',
-      headers: {'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=representation'},
+      headers: {'apikey':SUPABASE_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=representation'},
       body: JSON.stringify(data)
     });
     if(!r.ok) throw new Error(await r.text());
@@ -658,17 +659,29 @@ function reindex(){clients.forEach((c,i)=>c._idx=i+1);}
 // ══════════════════════════
 async function localSave(){
   try{
-    await window.storage.set('cl_v3',JSON.stringify(clients));
-    await window.storage.set('hi_v3',JSON.stringify(serviceHistory));
-    await window.storage.set('pl_v3',JSON.stringify(plannedJobs));
-  }catch(e){}
+    if(typeof window.storage!=='undefined'&&window.storage){
+      await window.storage.set('cl_v3',JSON.stringify(clients));
+      await window.storage.set('hi_v3',JSON.stringify(serviceHistory));
+      await window.storage.set('pl_v3',JSON.stringify(plannedJobs));
+    } else {
+      localStorage.setItem('cl_v3',JSON.stringify(clients));
+      localStorage.setItem('hi_v3',JSON.stringify(serviceHistory));
+      localStorage.setItem('pl_v3',JSON.stringify(plannedJobs));
+    }
+  }catch(e){console.log('localSave error:',e);}
 }
 async function localLoad(){
   try{
-    const c=await window.storage.get('cl_v3');if(c?.value)clients=JSON.parse(c.value);
-    const h=await window.storage.get('hi_v3');if(h?.value)serviceHistory=JSON.parse(h.value);
-    const p=await window.storage.get('pl_v3');if(p?.value)plannedJobs=JSON.parse(p.value);
-  }catch(e){}
+    if(typeof window.storage!=='undefined'&&window.storage){
+      const c=await window.storage.get('cl_v3');if(c?.value)clients=JSON.parse(c.value);
+      const h=await window.storage.get('hi_v3');if(h?.value)serviceHistory=JSON.parse(h.value);
+      const p=await window.storage.get('pl_v3');if(p?.value)plannedJobs=JSON.parse(p.value);
+    } else {
+      const c=localStorage.getItem('cl_v3');if(c)clients=JSON.parse(c);
+      const h=localStorage.getItem('hi_v3');if(h)serviceHistory=JSON.parse(h);
+      const p=localStorage.getItem('pl_v3');if(p)plannedJobs=JSON.parse(p);
+    }
+  }catch(e){console.log('localLoad error:',e);}
 }
 
 // ══════════════════════════
@@ -682,15 +695,19 @@ async function loadFromSupabase(){
       db.q('service_history','?order=recorded_at.desc&limit=5000'),
       db.q('planned_jobs','?order=date.asc&limit=1000').catch(()=>[])
     ]);
-    if(cl.length > 0){
-      clients = cl;
-      serviceHistory = hi;
-      plannedJobs = pl||[];
-      dbOnline = true;
-      setDbStatus('online');
-      await localSave();
-      return true;
+    // Connection successful even if tables empty
+    clients = cl.length > 0 ? cl : clients;
+    serviceHistory = hi.length > 0 ? hi : serviceHistory;
+    plannedJobs = (pl||[]).length > 0 ? pl : plannedJobs;
+    dbOnline = true;
+    setDbStatus('online');
+    await localSave();
+    // Show push button if DB is empty
+    if(cl.length === 0){
+      const pb=document.getElementById('push-btn');
+      if(pb)pb.style.display='inline-flex';
     }
+    return true;
   }catch(e){
     console.log('Supabase unavailable:',e.message);
   }
@@ -733,6 +750,30 @@ function doLogin(){
   }
 }
 function doLogout(){sessionStorage.removeItem('wl_u');document.getElementById('app').style.display='none';document.getElementById('login-screen').classList.add('show');}
+
+async function pushToSupabase(){
+  if(!dbOnline){toast('Supabase недоступен','error');return;}
+  if(!confirm('Загрузить все ' + clients.length + ' клиентов в Supabase? Это может занять минуту.'))return;
+  toast('Загрузка данных в Supabase...','info');
+  const btn=document.getElementById('push-btn');
+  btn.textContent='⏳ Загрузка...';btn.disabled=true;
+  try{
+    // Upload in batches of 100
+    const batchSize=100;
+    for(let i=0;i<clients.length;i+=batchSize){
+      const batch=clients.slice(i,i+batchSize);
+      await db.upsert('clients',batch,'id');
+      btn.textContent=`⏳ ${Math.min(i+batchSize,clients.length)}/${clients.length}`;
+    }
+    toast('✓ Все клиенты загружены в Supabase!','success');
+    btn.textContent='✓ Загружено';
+    setTimeout(()=>{btn.textContent='⬆ Загрузить в БД';btn.disabled=false;},3000);
+  }catch(e){
+    toast('Ошибка загрузки: '+e.message,'error');
+    btn.textContent='⬆ Загрузить в БД';btn.disabled=false;
+    console.error(e);
+  }
+}
 
 // ══════════════════════════
 // VIEWS
