@@ -1097,7 +1097,9 @@ async function saveRecord(){
   const hasMemb=(type==='memb'||type==='both')||(type==='custom'&&['p-memb','p-pump','p-tank','p-valve'].some(id=>document.getElementById(id)?.checked));
   if(hasFilter){c.filter_changes=[...(c.filter_changes||[]),dateVal];c.next_filter=addMonths(d,6).toISOString().split('T')[0];}
   if(hasMemb){c.memb_changes=[...(c.memb_changes||[]),dateVal];c.next_memb=addYears(d,2).toISOString().split('T')[0];}
-  const h={id:Date.now(),client_id:c.id,client_name:c.name,phone:c.phone,address:c.address,type,date:dateVal,parts,amount,master,note,recorded_at:new Date().toISOString()};
+  // Use entered date as recorded_at base (preserve historical entries)
+  const recDate = new Date(dateVal+'T12:00:00');
+  const h={id:Date.now(),client_id:c.id,client_name:c.name,phone:c.phone,address:c.address,type,date:dateVal,parts,amount,master,note,recorded_at:recDate.toISOString()};
   serviceHistory.unshift(h);doneThisSession++;
   await localSave();
   await syncClientToDb(c);
@@ -1154,12 +1156,42 @@ async function savePlan(){
 async function completePlan(pid){
   const p=plannedJobs.find(x=>x.id===pid);if(!p)return;
   p.done=true;
+  // Add to service history using the PLANNED DATE
+  const c=clients.find(x=>x.id===p.clientId);
+  const d=parseDate(p.date);
+  if(d){
+    if(p.type==='filter'||p.type==='both'){
+      if(c){c.filter_changes=[...(c.filter_changes||[]),p.date];c.next_filter=addMonths(d,6).toISOString().split('T')[0];}
+    }
+    if(p.type==='memb'||p.type==='both'){
+      if(c){c.memb_changes=[...(c.memb_changes||[]),p.date];c.next_memb=addYears(d,2).toISOString().split('T')[0];}
+    }
+  }
+  const h={
+    id:Date.now(),
+    client_id:p.clientId,
+    client_name:p.clientName,
+    phone:p.phone,
+    address:p.address,
+    type:p.type,
+    date:p.date,
+    parts:'',
+    amount:0,
+    master:p.master||'',
+    note:p.note||'(из плана)',
+    recorded_at: new Date(p.date+'T12:00:00').toISOString()
+  };
+  serviceHistory.unshift(h);
+  doneThisSession++;
   await localSave();
   await syncPlanToDb(p);
+  if(c)await syncClientToDb(c);
+  await syncHistoryToDb(h);
   computeStats();renderDashPlanned();
+  if(document.getElementById('view-history').classList.contains('active')){initHistoryFilter();renderHistory();}
   if(document.getElementById('view-calendar').classList.contains('active'))renderCalendar();
   if(document.getElementById('view-schedule').classList.contains('active'))renderSchedule();
-  toast(`✓ Выполнено: ${p.clientName}`,'success');
+  toast(`✓ Выполнено: ${p.clientName} — добавлено в историю`,'success');
 }
 async function deletePlan(pid){
   const p=plannedJobs.find(x=>x.id===pid);
@@ -1321,7 +1353,7 @@ async function quickRecord(id,kind,date,btn){
   if(kind==='filter'){c.filter_changes=[...(c.filter_changes||[]),date];c.next_filter=addMonths(d,6).toISOString().split('T')[0];}
   else{c.memb_changes=[...(c.memb_changes||[]),date];c.next_memb=addYears(d,2).toISOString().split('T')[0];}
   const parts=kind==='filter'?'Фильтр 1, Фильтр 2, Фильтр 3':'Мембрана, Насос, Бак';
-  const h={id:Date.now(),client_id:id,client_name:c.name,phone:c.phone,address:c.address,type:kind,date,parts,amount:0,master:'',note:'',recorded_at:new Date().toISOString()};
+  const h={id:Date.now(),client_id:id,client_name:c.name,phone:c.phone,address:c.address,type:kind,date,parts,amount:0,master:'',note:'',recorded_at:new Date(date+'T12:00:00').toISOString()};
   serviceHistory.unshift(h);doneThisSession++;
   c['_done_'+kind]=true;
   btn.classList.add('done');btn.textContent='✓';
