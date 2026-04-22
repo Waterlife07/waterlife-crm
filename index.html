@@ -695,17 +695,21 @@ async function loadFromSupabase(){
       db.q('service_history','?order=recorded_at.desc&limit=5000'),
       db.q('planned_jobs','?order=date.asc&limit=1000').catch(()=>[])
     ]);
-    // Connection successful even if tables empty
-    clients = cl.length > 0 ? cl : clients;
-    serviceHistory = hi.length > 0 ? hi : serviceHistory;
-    plannedJobs = (pl||[]).length > 0 ? pl : plannedJobs;
+    // Connection successful
     dbOnline = true;
     setDbStatus('online');
-    await localSave();
-    // Show push button if DB is empty
-    if(cl.length === 0){
+    if(cl.length > 0){
+      // DB has data - use it
+      clients = cl;
+      serviceHistory = hi.length > 0 ? hi : [];
+      plannedJobs = (pl||[]).length > 0 ? pl : [];
+      reindex();
+      await localSave();
+    } else {
+      // DB empty - keep embedded data, show upload button
       const pb=document.getElementById('push-btn');
       if(pb)pb.style.display='inline-flex';
+      toast('База пустая. Нажмите «⬆ Загрузить в БД» чтобы загрузить клиентов.','info');
     }
     return true;
   }catch(e){
@@ -717,8 +721,12 @@ async function loadFromSupabase(){
 
 async function syncClientToDb(c){
   if(!dbOnline)return;
-  try{setSyncing(true);await db.upsert('clients',c);setSyncing(false);}
-  catch(e){setSyncing(false);console.error('sync error',e);}
+  try{
+    setSyncing(true);
+    const {_idx,_done_filter,_done_memb,...clean}=c;
+    await db.upsert('clients',clean);
+    setSyncing(false);
+  }catch(e){setSyncing(false);console.error('sync error',e);}
 }
 async function syncHistoryToDb(h){
   if(!dbOnline)return;
@@ -761,7 +769,7 @@ async function pushToSupabase(){
     // Upload in batches of 100
     const batchSize=100;
     for(let i=0;i<clients.length;i+=batchSize){
-      const batch=clients.slice(i,i+batchSize);
+      const batch=clients.slice(i,i+batchSize).map(({_idx,...c})=>c);
       await db.upsert('clients',batch,'id');
       btn.textContent=`⏳ ${Math.min(i+batchSize,clients.length)}/${clients.length}`;
     }
