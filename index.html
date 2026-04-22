@@ -672,15 +672,21 @@ async function localSave(){
 }
 async function localLoad(){
   try{
+    let c,h,p;
     if(typeof window.storage!=='undefined'&&window.storage){
-      const c=await window.storage.get('cl_v3');if(c?.value)clients=JSON.parse(c.value);
-      const h=await window.storage.get('hi_v3');if(h?.value)serviceHistory=JSON.parse(h.value);
-      const p=await window.storage.get('pl_v3');if(p?.value)plannedJobs=JSON.parse(p.value);
+      const rc=await window.storage.get('cl_v3');
+      const rh=await window.storage.get('hi_v3');
+      const rp=await window.storage.get('pl_v3');
+      c=rc?.value; h=rh?.value; p=rp?.value;
     } else {
-      const c=localStorage.getItem('cl_v3');if(c)clients=JSON.parse(c);
-      const h=localStorage.getItem('hi_v3');if(h)serviceHistory=JSON.parse(h);
-      const p=localStorage.getItem('pl_v3');if(p)plannedJobs=JSON.parse(p);
+      c=localStorage.getItem('cl_v3');
+      h=localStorage.getItem('hi_v3');
+      p=localStorage.getItem('pl_v3');
     }
+    // Only overwrite if cached data is non-empty
+    if(c){ const parsed=JSON.parse(c); if(parsed.length>0){ clients=parsed; } }
+    if(h){ const parsed=JSON.parse(h); if(parsed.length>0){ serviceHistory=parsed; } }
+    if(p){ const parsed=JSON.parse(p); if(parsed.length>0){ plannedJobs=parsed; } }
   }catch(e){console.log('localLoad error:',e);}
 }
 
@@ -1405,18 +1411,27 @@ document.head.insertAdjacentHTML('beforeend',done_style);
 
 async function init(){
   document.getElementById('loader-text').textContent='загрузка данных...';
-  // Try Supabase first
+  
+  // STEP 1: Parse embedded data (always works, 795 clients)
+  let embeddedClients = [];
+  try{ embeddedClients = JSON.parse(EMBEDDED_DATA); }catch(e){ console.error('Embedded parse error:', e); }
+  console.log('Embedded clients loaded:', embeddedClients.length);
+  
+  // STEP 2: Set embedded data immediately so UI shows clients
+  clients = embeddedClients;
+  serviceHistory = [];
+  plannedJobs = [];
+  reindex();
+  computeStats();
+  renderClientsTable();
+  renderCalendar();
+  
+  // STEP 3: Try Supabase
+  document.getElementById('loader-text').textContent='подключение к Supabase...';
   const sbOk = await loadFromSupabase();
   if(!sbOk){
-    // Fallback: local storage, then embedded
-    await localLoad();
-    if(!clients.length){
-      try{clients=JSON.parse(EMBEDDED_DATA);}catch(e){clients=[];}
-      serviceHistory=[];plannedJobs=[];
-      toast('Данные из встроенной базы. Supabase недоступен.','info');
-    } else {
-      toast('Данные из локального хранилища','info');
-    }
+    // Supabase failed - keep embedded data as-is
+    toast('Supabase недоступен. Работаем с встроенными данными.','info');
   }
   reindex();
   initSchedMonths();
