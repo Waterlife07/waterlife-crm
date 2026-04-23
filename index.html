@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>АКВАфильтр CRM</title>
+<title>WATERLIFE CRM</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -244,15 +244,15 @@ select.form-control{cursor:pointer}
 
 <div id="loader">
   <div class="loader-ripple"><div></div><div></div><div></div></div>
-  <div class="loader-logo">АКВА<span style="opacity:.5;font-size:16px">ФИЛЬТР</span></div>
+  <div class="loader-logo">WATER<span style="opacity:.5;font-size:16px">LIFE</span></div>
   <div class="loader-bar"><div class="loader-fill"></div></div>
   <div class="loader-text" id="loader-text">инициализация...</div>
 </div>
 
 <div id="login-screen">
   <div class="login-box">
-    <div class="login-logo">💧 АКВАфильтр</div>
-    <div class="login-sub">CRM — Уральск · v3.0</div>
+    <div class="login-logo">💧 WATERLIFE</div>
+    <div class="login-sub">CRM — Уральск · v3.1</div>
     <div class="login-group"><label>Логин</label><input type="text" class="login-input" id="login-user" placeholder="admin" autocomplete="username"></div>
     <div class="login-group"><label>Пароль</label><input type="password" class="login-input" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" onclick="doLogin()">ВОЙТИ</button>
@@ -262,7 +262,7 @@ select.form-control{cursor:pointer}
 
 <div id="app" style="display:none">
 <div class="topbar">
-  <div class="logo">АКВА<span>ФИЛЬТР</span></div>
+  <div class="logo">WATER<span>LIFE</span></div>
   <div class="sync-dot offline" id="sync-dot" title="Статус подключения"></div>
   <div class="db-status" id="db-status">локально</div>
   <nav class="nav-tabs">
@@ -390,26 +390,16 @@ select.form-control{cursor:pointer}
           </select>
         </div>
       </div>
-      <!-- Filter type selector -->
-      <div id="filter-types-section" style="display:none;margin-bottom:12px">
-        <label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:8px">Типы фильтров (можно несколько)</label>
-        <div class="filter-types">
-          <label class="ft-item" onclick="toggleFT(this)"><input type="checkbox" id="ft-1" value="Фильтр 1 (мех.)"><div class="ft-icon">🟦</div><div class="ft-name">Механич.<br>очистка</div><div class="ft-price">~1 100 ₸</div></label>
-          <label class="ft-item" onclick="toggleFT(this)"><input type="checkbox" id="ft-2" value="Фильтр 2 (уголь)"><div class="ft-icon">⬛</div><div class="ft-name">Угольный<br>фильтр</div><div class="ft-price">~1 100 ₸</div></label>
-          <label class="ft-item" onclick="toggleFT(this)"><input type="checkbox" id="ft-3" value="Фильтр 3 (постф.)"><div class="ft-icon">🟩</div><div class="ft-name">Постфильтр<br>угольный</div><div class="ft-price">~1 100 ₸</div></label>
-          <label class="ft-item" onclick="toggleFT(this)"><input type="checkbox" id="ft-4" value="Фильтр 4 (минер.)"><div class="ft-icon">🔷</div><div class="ft-name">Минерали-<br>зующий</div><div class="ft-price">~1 500 ₸</div></label>
-          <label class="ft-item" onclick="toggleFT(this)"><input type="checkbox" id="ft-5" value="Фильтр 5 (алкал.)"><div class="ft-icon">🔵</div><div class="ft-name">Алкали-<br>зующий</div><div class="ft-price">~2 000 ₸</div></label>
-          <label class="ft-item" onclick="toggleFT(this)"><input type="checkbox" id="ft-uv" value="УФ-лампа"><div class="ft-icon">💡</div><div class="ft-name">УФ-лампа<br></div><div class="ft-price">~3 500 ₸</div></label>
-        </div>
-      </div>
-      <!-- Membrane parts -->
-      <div id="memb-parts-section" style="display:none;margin-bottom:12px">
+      <!-- Parts checkboxes -->
+      <div id="parts-section" style="display:none;margin-bottom:12px">
         <label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:8px">Что заменили</label>
         <div class="parts-grid">
-          <label class="part-item"><input type="checkbox" id="p-memb" checked><span class="part-label">Мембрана</span><span class="part-price">~8 000 ₸</span></label>
-          <label class="part-item"><input type="checkbox" id="p-pump" checked><span class="part-label">Насос</span><span class="part-price">~12 000 ₸</span></label>
-          <label class="part-item"><input type="checkbox" id="p-tank" checked><span class="part-label">Накопительный бак</span><span class="part-price">~7 000 ₸</span></label>
-          <label class="part-item"><input type="checkbox" id="p-valve"><span class="part-label">Клапан</span><span class="part-price">~1 500 ₸</span></label>
+          <label class="part-item"><input type="checkbox" id="p-f3" value="3 фильтра"><span class="part-label">3 фильтра</span></label>
+          <label class="part-item"><input type="checkbox" id="p-memb" value="Мембрана"><span class="part-label">Мембрана</span></label>
+          <label class="part-item"><input type="checkbox" id="p-pump" value="Насос"><span class="part-label">Насос</span></label>
+          <label class="part-item"><input type="checkbox" id="p-tank" value="Бак"><span class="part-label">Накопительный бак</span></label>
+          <label class="part-item"><input type="checkbox" id="p-mineral" value="Минерализатор"><span class="part-label">Минерализатор</span></label>
+          <label class="part-item"><input type="checkbox" id="p-other"><span class="part-label">Другое:</span><input type="text" id="p-other-text" class="form-control" style="padding:3px 6px;font-size:11px;margin-top:3px" placeholder="укажите..."></label>
         </div>
       </div>
       <div class="form-row">
@@ -491,9 +481,16 @@ select.form-control{cursor:pointer}
         <div class="form-group"><label>Дилер</label><input type="text" class="form-control" id="edit-dealer"></div>
       </div>
       <div class="form-group"><label>Примечание</label><input type="text" class="form-control" id="edit-notes"></div>
-      <div class="form-row">
-        <div class="form-group"><label>Следующая замена фильтров</label><input type="date" class="form-control" id="edit-next-filter"></div>
-        <div class="form-group"><label>Следующая замена мембраны</label><input type="date" class="form-control" id="edit-next-memb"></div>
+      <div style="background:var(--surface2);border-radius:6px;padding:12px;margin-bottom:12px">
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Даты замен (введи последнюю — следующая рассчитается автоматически)</div>
+        <div class="form-row" style="margin-bottom:8px">
+          <div class="form-group" style="margin-bottom:0"><label>Последняя замена фильтров</label><input type="date" class="form-control" id="edit-last-filter" oninput="calcNextFromLast('filter')"></div>
+          <div class="form-group" style="margin-bottom:0"><label>Следующая (авто +6 мес)</label><input type="date" class="form-control" id="edit-next-filter" style="background:var(--surface3);opacity:.8"></div>
+        </div>
+        <div class="form-row" style="margin-bottom:0">
+          <div class="form-group" style="margin-bottom:0"><label>Последняя замена мембраны/насоса/бака</label><input type="date" class="form-control" id="edit-last-memb" oninput="calcNextFromLast('memb')"></div>
+          <div class="form-group" style="margin-bottom:0"><label>Следующая (авто +2 года)</label><input type="date" class="form-control" id="edit-next-memb" style="background:var(--surface3);opacity:.8"></div>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -536,6 +533,62 @@ select.form-control{cursor:pointer}
   </div>
 </div>
 
+<!-- Complete plan modal -->
+<div class="modal-backdrop" id="complete-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="cm-title">Отметить выполненным</div><button class="modal-close" onclick="closeModal('complete-modal')">✕</button></div>
+    <div class="modal-body">
+      <div style="background:var(--surface2);border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--text2)" id="cm-info"></div>
+      <input type="hidden" id="cm-pid">
+      <div class="form-row">
+        <div class="form-group"><label>Фактическая дата</label><input type="date" class="form-control" id="cm-date"></div>
+        <div class="form-group"><label>Сумма оплаты (₸)</label><input type="number" class="form-control" id="cm-amount" placeholder="0" autofocus></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Мастер</label><input type="text" class="form-control" id="cm-master"></div>
+        <div class="form-group"><label>Примечание</label><input type="text" class="form-control" id="cm-note"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('complete-modal')">Отмена</button>
+      <button class="btn btn-success" onclick="saveComplete()">✓ Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit history modal -->
+<div class="modal-backdrop" id="edit-history-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">✏ Редактировать запись</div><button class="modal-close" onclick="closeModal('edit-history-modal')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="eh-id">
+      <div style="font-weight:600;margin-bottom:14px;color:var(--accent)" id="eh-client"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Дата замены</label><input type="date" class="form-control" id="eh-date"></div>
+        <div class="form-group"><label>Тип замены</label>
+          <select class="form-control" id="eh-type">
+            <option value="filter">🔵 Замена фильтров</option>
+            <option value="memb">🔴 Мембрана + насос + бак</option>
+            <option value="both">🟢 Всё комплектом</option>
+            <option value="custom">⚙️ Выборочная</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>Что заменили (запчасти)</label><input type="text" class="form-control" id="eh-parts" placeholder="Фильтр 1, Фильтр 2..."></div>
+      <div class="form-row">
+        <div class="form-group"><label>Сумма (₸)</label><input type="number" class="form-control" id="eh-amount"></div>
+        <div class="form-group"><label>Мастер</label><input type="text" class="form-control" id="eh-master"></div>
+      </div>
+      <div class="form-group"><label>Примечание</label><input type="text" class="form-control" id="eh-note"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="deleteHistoryEntry(parseInt(document.getElementById('eh-id').value))">🗑 Удалить</button>
+      <button class="btn btn-ghost" onclick="closeModal('edit-history-modal')">Отмена</button>
+      <button class="btn btn-success" onclick="saveEditHistory()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
 <!-- Day -->
 <div class="modal-backdrop" id="day-modal">
   <div class="modal">
@@ -554,7 +607,7 @@ select.form-control{cursor:pointer}
 // ══════════════════════════
 // CONFIG
 // ══════════════════════════
-const USERS = {'admin':'waterlife2024','manager':'manager123'};
+const USERS = {'dinara':'waterlife2026','erkinbek':'waterlife2026'};
 const SUPABASE_URL = 'https://mycoiwejoyuqznwwbrso.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_OCptnUUgz42Pvop8o4AmFQ_lHTMW1s0';
 const USE_SUPABASE = true;
@@ -652,7 +705,17 @@ function fmtShort(s){if(!s)return'—';const d=parseDate(s);if(!d)return s;retur
 function dateStatus(s){const d=parseDate(s);if(!d)return'none';const df=Math.floor((d-today)/864e5);if(df<0)return'overdue';if(df<=30)return'due';if(df<=60)return'warn';return'ok'}
 function statusTag(s){if(!s)return'—';const d=fmtDate(s);const st=dateStatus(s);const map={overdue:`<span class="tag tag-due">⚠ ${d}</span>`,due:`<span class="tag tag-warn">⚡ ${d}</span>`,warn:`<span class="tag tag-warn">${d}</span>`,ok:`<span class="tag tag-ok">${d}</span>`};return map[st]||d}
 function typeLabel(t){return t==='filter'?'🔵 Замена фильтров':t==='memb'?'🔴 Мембрана+насос+бак':t==='both'?'🟢 Всё комплектом':'⚙️ Выборочная'}
-function reindex(){clients.forEach((c,i)=>c._idx=i+1);}
+function reindex(){
+  // Sort by install_date ascending (oldest first = #1), nulls last
+  const sorted=[...clients].sort((a,b)=>{
+    const da=a.install_date||'9999';const db=b.install_date||'9999';
+    return da.localeCompare(db);
+  });
+  sorted.forEach((c,i)=>c._idx=i+1);
+  // Apply index back to original array by id
+  const idxMap={};sorted.forEach(c=>idxMap[c.id]=c._idx);
+  clients.forEach(c=>c._idx=idxMap[c.id]||0);
+}
 
 // ══════════════════════════
 // LOCAL STORAGE FALLBACK
@@ -816,10 +879,10 @@ function computeStats(){
     const nm2=parseDate(c.next_memb);
     if(nm2){if(nm2.getMonth()===nm&&nm2.getFullYear()===ny)membDue.push(c);if(nm2<today)overdue++;}
   });
-  document.getElementById('kpi-total').textContent=clients.length;
   const mt=filterDue.length+membDue.length;
+  document.getElementById('kpi-total').textContent=clients.length;
   document.getElementById('kpi-month').textContent=mt;
-  document.getElementById('kpi-month-sub').textContent=`${filterDue.length} фильтры · ${membDue.length} мембрана`;
+  document.getElementById('kpi-month-sub').textContent=filterDue.length+' фильтры · '+membDue.length+' мембрана';
   document.getElementById('kpi-overdue').textContent=overdue;
   document.getElementById('kpi-done').textContent=doneThisSession;
   document.getElementById('total-count').textContent=clients.length;
@@ -844,7 +907,7 @@ function renderDashSchedule(fd,md){
 
 function renderDashPlanned(){
   const nm=today.getMonth(),ny=today.getFullYear();
-  const list=plannedJobs.filter(p=>{const d=parseDate(p.date);return d&&d.getMonth()===nm&&d.getFullYear()===ny&&!p.done}).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||''));
+  const list=plannedJobs.filter(p=>{const d=parseDate(p.date);return d&&d.getMonth()===nm&&d.getFullYear()===ny&&!p.done;}).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||''));
   const el=document.getElementById('dash-planned-list');
   if(!list.length){el.innerHTML='<div style="color:var(--text3);font-size:12px;padding:8px">Запланированных замен нет</div>';return;}
   el.innerHTML=list.map(p=>plannedItemHTML(p)).join('');
@@ -947,6 +1010,15 @@ function openRecordFromDetail(){closeModal('detail-modal');const c=clients.find(
 // ══════════════════════════
 // EDIT CLIENT
 // ══════════════════════════
+function calcNextFromLast(kind){
+  if(kind==='filter'){
+    const v=document.getElementById('edit-last-filter').value;
+    if(v){const d=parseDate(v);document.getElementById('edit-next-filter').value=d?addMonths(d,6).toISOString().split('T')[0]:'';}
+  } else {
+    const v=document.getElementById('edit-last-memb').value;
+    if(v){const d=parseDate(v);document.getElementById('edit-next-memb').value=d?addYears(d,2).toISOString().split('T')[0]:'';}
+  }
+}
 function openEditClient(){
   const c=clients.find(x=>x.id===detailClientId);if(!c)return;
   closeModal('detail-modal');
@@ -957,6 +1029,11 @@ function openEditClient(){
   document.getElementById('edit-price').value=c.price||'';
   document.getElementById('edit-dealer').value=c.dealer||'';
   document.getElementById('edit-notes').value=c.notes||'';
+  // Last changes
+  const lastFilter=(c.filter_changes||[]).filter(x=>x).slice(-1)[0]||'';
+  const lastMemb=(c.memb_changes||[]).filter(x=>x).slice(-1)[0]||'';
+  document.getElementById('edit-last-filter').value=lastFilter;
+  document.getElementById('edit-last-memb').value=lastMemb;
   document.getElementById('edit-next-filter').value=c.next_filter||'';
   document.getElementById('edit-next-memb').value=c.next_memb||'';
   document.getElementById('edit-client-modal').classList.add('open');
@@ -972,8 +1049,23 @@ async function saveEditClient(){
   c.price=parseInt(document.getElementById('edit-price').value)||0;
   c.dealer=document.getElementById('edit-dealer').value.trim();
   c.notes=document.getElementById('edit-notes').value.trim();
-  c.next_filter=document.getElementById('edit-next-filter').value;
-  c.next_memb=document.getElementById('edit-next-memb').value;
+  // Update last change dates if provided
+  const lastF=document.getElementById('edit-last-filter').value;
+  const lastM=document.getElementById('edit-last-memb').value;
+  if(lastF){
+    const arr=(c.filter_changes||[]).filter(x=>x&&x!==lastF);
+    c.filter_changes=[...arr,lastF];
+    const d=parseDate(lastF);if(d)c.next_filter=addMonths(d,6).toISOString().split('T')[0];
+  } else {
+    c.next_filter=document.getElementById('edit-next-filter').value;
+  }
+  if(lastM){
+    const arr=(c.memb_changes||[]).filter(x=>x&&x!==lastM);
+    c.memb_changes=[...arr,lastM];
+    const d=parseDate(lastM);if(d)c.next_memb=addYears(d,2).toISOString().split('T')[0];
+  } else {
+    c.next_memb=document.getElementById('edit-next-memb').value;
+  }
   await localSave();
   await syncClientToDb(c);
   computeStats();renderClientsTable();
@@ -1041,21 +1133,23 @@ function toggleFT(label){
 }
 function onRecTypeChange(){
   const t=document.getElementById('rec-type').value;
-  const fs=document.getElementById('filter-types-section');
-  const ms=document.getElementById('memb-parts-section');
-  fs.style.display=(t==='filter'||t==='both'||t==='custom')?'block':'none';
-  ms.style.display=(t==='memb'||t==='both'||t==='custom')?'block':'none';
-  // Auto-check defaults
-  if(t==='filter'){['ft-1','ft-2','ft-3'].forEach(id=>{const el=document.getElementById(id);el.checked=true;el.closest('.ft-item').classList.add('selected')});['ft-4','ft-5','ft-uv'].forEach(id=>{const el=document.getElementById(id);el.checked=false;el.closest('.ft-item').classList.remove('selected')});['p-memb','p-pump','p-tank','p-valve'].forEach(id=>document.getElementById(id).checked=false);}
-  if(t==='memb'){['ft-1','ft-2','ft-3','ft-4','ft-5','ft-uv'].forEach(id=>{const el=document.getElementById(id);el.checked=false;el.closest('.ft-item').classList.remove('selected')});['p-memb','p-pump','p-tank'].forEach(id=>document.getElementById(id).checked=true);document.getElementById('p-valve').checked=false;}
-  if(t==='both'){['ft-1','ft-2','ft-3'].forEach(id=>{const el=document.getElementById(id);el.checked=true;el.closest('.ft-item').classList.add('selected')});['ft-4','ft-5','ft-uv'].forEach(id=>{const el=document.getElementById(id);el.checked=false;el.closest('.ft-item').classList.remove('selected')});['p-memb','p-pump','p-tank'].forEach(id=>document.getElementById(id).checked=true);document.getElementById('p-valve').checked=false;}
-  if(t==='custom'){['ft-1','ft-2','ft-3','ft-4','ft-5','ft-uv','p-memb','p-pump','p-tank','p-valve'].forEach(id=>{const el=document.getElementById(id);if(el){el.checked=false;el.closest('.ft-item,.part-item')?.classList.remove('selected');}});}
+  const ps=document.getElementById('parts-section');
+  ps.style.display=t?'block':'none';
+  // Auto-check by type
+  const all=['p-f3','p-memb','p-pump','p-tank','p-mineral','p-other'];
+  all.forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
+  if(t==='filter'){document.getElementById('p-f3').checked=true;}
+  if(t==='memb'){['p-memb','p-pump','p-tank'].forEach(id=>document.getElementById(id).checked=true);}
+  if(t==='both'){['p-f3','p-memb','p-pump','p-tank'].forEach(id=>document.getElementById(id).checked=true);}
+  // custom: all unchecked, user picks manually
 }
 function getSelectedParts(){
   const parts=[];
-  const ftMap={'ft-1':'Фильтр 1 (мех.)','ft-2':'Фильтр 2 (уголь)','ft-3':'Фильтр 3 (постф.)','ft-4':'Фильтр 4 (минер.)','ft-5':'Фильтр 5 (алкал.)','ft-uv':'УФ-лампа'};
-  const mpMap={'p-memb':'Мембрана','p-pump':'Насос','p-tank':'Бак','p-valve':'Клапан'};
-  Object.entries({...ftMap,...mpMap}).forEach(([id,label])=>{if(document.getElementById(id)?.checked)parts.push(label);});
+  const map={'p-f3':'3 фильтра','p-memb':'Мембрана','p-pump':'Насос','p-tank':'Бак','p-mineral':'Минерализатор'};
+  Object.entries(map).forEach(([id,label])=>{if(document.getElementById(id)?.checked)parts.push(label);});
+  const other=document.getElementById('p-other');
+  const otherText=document.getElementById('p-other-text');
+  if(other?.checked&&otherText?.value.trim())parts.push(otherText.value.trim());
   return parts.join(', ');
 }
 function searchClients(q,prefix){
@@ -1093,8 +1187,8 @@ async function saveRecord(){
   const d=parseDate(dateVal);
   const parts=getSelectedParts();
   // Update client dates
-  const hasFilter=(type==='filter'||type==='both')||(type==='custom'&&['ft-1','ft-2','ft-3','ft-4','ft-5','ft-uv'].some(id=>document.getElementById(id)?.checked));
-  const hasMemb=(type==='memb'||type==='both')||(type==='custom'&&['p-memb','p-pump','p-tank','p-valve'].some(id=>document.getElementById(id)?.checked));
+  const hasFilter=(type==='filter'||type==='both')||(type==='custom'&&document.getElementById('p-f3')?.checked);
+  const hasMemb=(type==='memb'||type==='both')||(type==='custom'&&['p-memb','p-pump','p-tank','p-mineral'].some(id=>document.getElementById(id)?.checked));
   if(hasFilter){c.filter_changes=[...(c.filter_changes||[]),dateVal];c.next_filter=addMonths(d,6).toISOString().split('T')[0];}
   if(hasMemb){c.memb_changes=[...(c.memb_changes||[]),dateVal];c.next_memb=addYears(d,2).toISOString().split('T')[0];}
   // Use entered date as recorded_at base (preserve historical entries)
@@ -1109,8 +1203,7 @@ async function saveRecord(){
   closeModal('record-modal');
   ['rec-client-input','rec-type','rec-note','rec-amount','rec-master'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('rec-client-info').style.display='none';
-  document.getElementById('filter-types-section').style.display='none';
-  document.getElementById('memb-parts-section').style.display='none';
+  document.getElementById('parts-section').style.display='none';
   selectedClientId=null;
   toast(`✓ Замена записана: ${c.name}`,'success');
   if(document.getElementById('view-calendar').classList.contains('active'))renderCalendar();
@@ -1153,45 +1246,43 @@ async function savePlan(){
   if(document.getElementById('view-calendar').classList.contains('active'))renderCalendar();
   if(document.getElementById('view-schedule').classList.contains('active'))renderSchedule();
 }
-async function completePlan(pid){
+function completePlan(pid){
+  const p=plannedJobs.find(x=>x.id===pid);if(!p)return;
+  document.getElementById('cm-pid').value=pid;
+  document.getElementById('cm-title').textContent='Выполнено: '+p.clientName;
+  document.getElementById('cm-info').textContent=typeLabel(p.type)+' · '+fmtDate(p.date)+(p.master?' · Мастер: '+p.master:'');
+  document.getElementById('cm-date').value=p.date;
+  document.getElementById('cm-amount').value='';
+  document.getElementById('cm-note').value=p.note||'';
+  document.getElementById('cm-master').value=p.master||'';
+  document.getElementById('complete-modal').classList.add('open');
+}
+
+async function saveComplete(){
+  const pid=document.getElementById('cm-pid').value;
+  const amount=parseInt(document.getElementById('cm-amount').value)||0;
+  const note=document.getElementById('cm-note').value.trim();
+  const master=document.getElementById('cm-master').value.trim();
+  const dateVal=document.getElementById('cm-date').value;
   const p=plannedJobs.find(x=>x.id===pid);if(!p)return;
   p.done=true;
-  // Add to service history using the PLANNED DATE
   const c=clients.find(x=>x.id===p.clientId);
-  const d=parseDate(p.date);
+  const d=parseDate(dateVal||p.date);
+  const useDate=dateVal||p.date;
   if(d){
-    if(p.type==='filter'||p.type==='both'){
-      if(c){c.filter_changes=[...(c.filter_changes||[]),p.date];c.next_filter=addMonths(d,6).toISOString().split('T')[0];}
-    }
-    if(p.type==='memb'||p.type==='both'){
-      if(c){c.memb_changes=[...(c.memb_changes||[]),p.date];c.next_memb=addYears(d,2).toISOString().split('T')[0];}
-    }
+    if(p.type==='filter'||p.type==='both'){if(c){c.filter_changes=[...(c.filter_changes||[]),useDate];c.next_filter=addMonths(d,6).toISOString().split('T')[0];}}
+    if(p.type==='memb'||p.type==='both'){if(c){c.memb_changes=[...(c.memb_changes||[]),useDate];c.next_memb=addYears(d,2).toISOString().split('T')[0];}}
   }
-  const h={
-    id:Date.now(),
-    client_id:p.clientId,
-    client_name:p.clientName,
-    phone:p.phone,
-    address:p.address,
-    type:p.type,
-    date:p.date,
-    parts:'',
-    amount:0,
-    master:p.master||'',
-    note:p.note||'(из плана)',
-    recorded_at: new Date(p.date+'T12:00:00').toISOString()
-  };
-  serviceHistory.unshift(h);
-  doneThisSession++;
+  const h={id:Date.now(),client_id:p.clientId,client_name:p.clientName,phone:p.phone,address:p.address,type:p.type,date:useDate,parts:'',amount,master:master||p.master||'',note:note||(p.note?'из плана: '+p.note:'из плана'),recorded_at:new Date(useDate+'T12:00:00').toISOString()};
+  serviceHistory.unshift(h);doneThisSession++;
+  closeModal('complete-modal');
   await localSave();
-  await syncPlanToDb(p);
-  if(c)await syncClientToDb(c);
-  await syncHistoryToDb(h);
+  await syncPlanToDb(p);if(c)await syncClientToDb(c);await syncHistoryToDb(h);
   computeStats();renderDashPlanned();
   if(document.getElementById('view-history').classList.contains('active')){initHistoryFilter();renderHistory();}
   if(document.getElementById('view-calendar').classList.contains('active'))renderCalendar();
   if(document.getElementById('view-schedule').classList.contains('active'))renderSchedule();
-  toast(`✓ Выполнено: ${p.clientName} — добавлено в историю`,'success');
+  toast('✓ '+p.clientName+(amount?' — '+amount.toLocaleString('ru')+' ₸':'')+' добавлено в историю','success');
 }
 async function deletePlan(pid){
   const p=plannedJobs.find(x=>x.id===pid);
@@ -1221,8 +1312,11 @@ async function saveNewClient(){
   const dup=clients.find(c=>c.name.toLowerCase()===name.toLowerCase()&&c.phone===phone);
   if(dup){toast(`Клиент "${name}" уже в базе (#${dup._idx})`,'error');return;}
   const d=parseDate(date);
+  if(!d){toast('Неверный формат даты','error');return;}
   const newId=clients.length?Math.max(...clients.map(c=>Number(c.id)||0))+1:1;
-  const nc={id:newId,name,phone,address,price,dealer,install_date:date,filter_changes:[date],memb_changes:[date],next_filter:addMonths(d,6).toISOString().split('T')[0],next_memb:addYears(d,2).toISOString().split('T')[0],notes:note};
+  const nf=addMonths(d,6).toISOString().split('T')[0];
+  const nm=addYears(d,2).toISOString().split('T')[0];
+  const nc={id:newId,name,phone,address,price,dealer,install_date:date,filter_changes:[date],memb_changes:[date],next_filter:nf,next_memb:nm,notes:note};
   clients.push(nc);reindex();
   await localSave();
   await syncClientToDb(nc);
@@ -1331,19 +1425,22 @@ function renderSchedule(){
   rows.sort((a,b)=>a.date.localeCompare(b.date));
   document.getElementById('sched-count').textContent=`${rows.length} замен`;
   document.getElementById('sched-tbody').innerHTML=rows.map(r=>`
-    <tr>
+    <tr style="${r.c['_done_'+r.kind]?'opacity:.4;text-decoration:line-through':''}">
       <td style="font-weight:500">${r.c.name}</td>
       <td style="color:var(--accent)">${r.c.phone||'—'}</td>
       <td style="color:var(--text2)">${r.c.address||'—'}</td>
       <td>${r.kind==='filter'?'<span class="tag tag-blue">🔵 Замена фильтров</span>':'<span class="tag tag-due">🔴 Мембрана+насос+бак</span>'}</td>
       <td>${fmtDate(r.date)}</td>
-      <td><button class="done-btn ${r.c['_done_'+r.kind]?'done':''}" onclick="quickRecord(${r.c.id},'${r.kind}','${r.date}',this)">${r.c['_done_'+r.kind]?'✓':''}</button></td>
+      <td style="display:flex;gap:4px;align-items:center">
+        <button class="done-btn ${r.c['_done_'+r.kind]?'done':''}" onclick="quickRecord(${r.c.id},'${r.kind}','${r.date}',this)">${r.c['_done_'+r.kind]?'✓':''}</button>
+      </td>
     </tr>`).join('')||'<tr><td colspan="6" class="empty-state">Замен нет</td></tr>';
   // Planned for this month in schedule
   const planned=plannedJobs.filter(p=>{const d=parseDate(p.date);return d&&d.getFullYear()===year&&d.getMonth()===month;}).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||''));
   const spEl=document.getElementById('sched-planned');
-  if(!planned.length){spEl.innerHTML='<div style="color:var(--text3);font-size:12px;padding:8px">Запланированных замен нет</div>';return;}
-  spEl.innerHTML=planned.map(p=>plannedItemHTML(p)).join('');
+  const activePlanned=planned.filter(p=>!p.done);
+  if(!activePlanned.length){spEl.innerHTML='<div style="color:var(--text3);font-size:12px;padding:8px">Запланированных замен нет</div>';return;}
+  spEl.innerHTML=activePlanned.map(p=>plannedItemHTML(p)).join('');
 }
 
 const done_btns_map={};
@@ -1399,7 +1496,7 @@ function renderHistory(){
     return`<div style="margin-bottom:20px">
       <div class="section-title">${g.lbl}${g.total?` <span style="color:var(--green);font-family:Orbitron,monospace;font-size:11px;font-weight:700">${g.total.toLocaleString('ru')} ₸</span>`:''}</div>
       <div class="table-wrap"><table><thead><tr>
-        <th>Дата</th><th>Клиент</th><th>Тел</th><th>Что заменили</th><th>Запчасти</th><th>Сумма</th><th>Мастер</th><th>Примечание</th>
+        <th>Дата</th><th>Клиент</th><th>Тел</th><th>Что заменили</th><th>Запчасти</th><th>Сумма</th><th>Мастер</th><th>Примечание</th><th></th>
       </tr></thead><tbody>${g.items.map(h=>`<tr>
         <td style="color:var(--text3);white-space:nowrap">${new Date(h.recorded_at).toLocaleDateString('ru-RU')}</td>
         <td style="font-weight:500;cursor:pointer;color:var(--accent)" onclick="openDetail(${h.client_id})">${h.client_name}</td>
@@ -1409,8 +1506,50 @@ function renderHistory(){
         <td style="color:var(--green);font-weight:600;white-space:nowrap">${h.amount?Number(h.amount).toLocaleString('ru')+' ₸':'—'}</td>
         <td style="color:var(--text3)">${h.master||'—'}</td>
         <td style="color:var(--text3);font-size:11px">${h.note||''}</td>
+        <td style="text-align:center"><span style="color:var(--accent);cursor:pointer;font-size:13px" onclick="openEditHistory(${h.id})" title="Редактировать">✏</span></td>
       </tr>`).join('')}</tbody></table></div></div>`;
   }).join('');
+}
+
+// ══════════════════════════
+// EDIT HISTORY
+// ══════════════════════════
+function openEditHistory(hid){
+  const h=serviceHistory.find(x=>x.id===hid);if(!h)return;
+  document.getElementById('eh-id').value=hid;
+  document.getElementById('eh-client').textContent=h.client_name||'';
+  document.getElementById('eh-date').value=h.date||'';
+  document.getElementById('eh-type').value=h.type||'filter';
+  document.getElementById('eh-parts').value=h.parts||'';
+  document.getElementById('eh-amount').value=h.amount||'';
+  document.getElementById('eh-master').value=h.master||'';
+  document.getElementById('eh-note').value=h.note||'';
+  document.getElementById('edit-history-modal').classList.add('open');
+}
+async function saveEditHistory(){
+  const hid=parseInt(document.getElementById('eh-id').value);
+  const h=serviceHistory.find(x=>x.id===hid);if(!h)return;
+  h.date=document.getElementById('eh-date').value;
+  h.type=document.getElementById('eh-type').value;
+  h.parts=document.getElementById('eh-parts').value;
+  h.amount=parseInt(document.getElementById('eh-amount').value)||0;
+  h.master=document.getElementById('eh-master').value;
+  h.note=document.getElementById('eh-note').value;
+  h.recorded_at=new Date(h.date+'T12:00:00').toISOString();
+  await localSave();
+  if(dbOnline){try{const {_idx,...clean}=h;await db.update('service_history',hid,clean);}catch(e){console.error(e);}}
+  closeModal('edit-history-modal');
+  initHistoryFilter();renderHistory();
+  toast('✓ Запись обновлена','success');
+}
+async function deleteHistoryEntry(hid){
+  if(!confirm('Удалить эту запись из истории?'))return;
+  serviceHistory=serviceHistory.filter(x=>x.id!==hid);
+  await localSave();
+  if(dbOnline){try{await db.delete('service_history',hid);}catch(e){}}
+  closeModal('edit-history-modal');
+  initHistoryFilter();renderHistory();
+  toast('Запись удалена','info');
 }
 
 // ══════════════════════════
