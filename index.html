@@ -542,12 +542,31 @@ select.form-control{cursor:pointer}
       <input type="hidden" id="cm-pid">
       <div class="form-row">
         <div class="form-group"><label>Фактическая дата</label><input type="date" class="form-control" id="cm-date"></div>
-        <div class="form-group"><label>Сумма оплаты (₸)</label><input type="number" class="form-control" id="cm-amount" placeholder="0" autofocus></div>
+        <div class="form-group"><label>Тип замены</label>
+          <select class="form-control" id="cm-type">
+            <option value="filter">🔵 Замена фильтров</option>
+            <option value="memb">🔴 Мембрана + насос + бак</option>
+            <option value="both">🟢 Всё комплектом</option>
+            <option value="custom">⚙️ Выборочная</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Что заменили (запчасти)</label>
+        <div class="parts-grid" style="margin-top:6px">
+          <label class="part-item"><input type="checkbox" id="cm-p-f3" value="3 фильтра"><span class="part-label">3 фильтра</span></label>
+          <label class="part-item"><input type="checkbox" id="cm-p-memb" value="Мембрана"><span class="part-label">Мембрана</span></label>
+          <label class="part-item"><input type="checkbox" id="cm-p-pump" value="Насос"><span class="part-label">Насос</span></label>
+          <label class="part-item"><input type="checkbox" id="cm-p-tank" value="Бак"><span class="part-label">Бак</span></label>
+          <label class="part-item"><input type="checkbox" id="cm-p-mineral" value="Минерализатор"><span class="part-label">Минерализатор</span></label>
+          <label class="part-item"><input type="checkbox" id="cm-p-other"><span class="part-label">Другое:</span><input type="text" id="cm-p-other-text" class="form-control" style="padding:3px 6px;font-size:11px;margin-top:3px" placeholder="..."></label>
+        </div>
       </div>
       <div class="form-row">
+        <div class="form-group"><label>Сумма оплаты (₸)</label><input type="number" class="form-control" id="cm-amount" placeholder="0"></div>
         <div class="form-group"><label>Мастер</label><input type="text" class="form-control" id="cm-master"></div>
-        <div class="form-group"><label>Примечание</label><input type="text" class="form-control" id="cm-note"></div>
       </div>
+      <div class="form-group"><label>Примечание</label><input type="text" class="form-control" id="cm-note"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('complete-modal')">Отмена</button>
@@ -875,9 +894,15 @@ function computeStats(){
   let filterDue=[],membDue=[],overdue=0;
   clients.forEach(c=>{
     const nf=parseDate(c.next_filter);
-    if(nf){if(nf.getMonth()===nm&&nf.getFullYear()===ny)filterDue.push(c);if(nf<today)overdue++;}
+    if(nf){
+      if(nf.getFullYear()===ny&&nf.getMonth()===nm)filterDue.push(c);
+      if(nf<today)overdue++;
+    }
     const nm2=parseDate(c.next_memb);
-    if(nm2){if(nm2.getMonth()===nm&&nm2.getFullYear()===ny)membDue.push(c);if(nm2<today)overdue++;}
+    if(nm2){
+      if(nm2.getFullYear()===ny&&nm2.getMonth()===nm)membDue.push(c);
+      if(nm2<today)overdue++;
+    }
   });
   const mt=filterDue.length+membDue.length;
   document.getElementById('kpi-total').textContent=clients.length;
@@ -1157,9 +1182,24 @@ function searchClients(q,prefix){
   const sug=document.getElementById(csrId);
   if(prefix==='rec')selectedClientId=null;else selectedPlanClientId=null;
   if(q.length<1){sug.classList.remove('open');return;}
-  const matches=clients.filter(c=>(c.name||'').toLowerCase().includes(q.toLowerCase())).slice(0,10);
+  const ql=q.toLowerCase();
+  // Smart search: name, phone (digits only), address
+  const qDigits=q.replace(/\D/g,'');
+  const matches=clients.filter(c=>{
+    if((c.name||'').toLowerCase().includes(ql))return true;
+    if((c.address||'').toLowerCase().includes(ql))return true;
+    const ph=(c.phone||'').replace(/\D/g,'');
+    if(qDigits.length>=3&&ph.includes(qDigits))return true;
+    return false;
+  }).slice(0,12);
   if(!matches.length){sug.classList.remove('open');return;}
-  sug.innerHTML=matches.map(c=>`<div class="csr-item" onclick="selectClient(${c.id},'${prefix}')"><div>${c.name}</div><div class="csr-sub">${c.phone||''} · ${c.address||''}</div></div>`).join('');
+  sug.innerHTML=matches.map(c=>{
+    const hl=(s,q)=>s.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<b style="color:var(--accent)">$1</b>');
+    return`<div class="csr-item" onclick="selectClient(${c.id},'${prefix}')">
+      <div>${hl(c.name||'',q)}</div>
+      <div class="csr-sub">${c.phone?hl(c.phone,q):''} · ${c.address?hl(c.address,q):''}</div>
+    </div>`;
+  }).join('');
   sug.classList.add('open');
 }
 function selectClient(id,prefix){
@@ -1199,6 +1239,7 @@ async function saveRecord(){
   await syncClientToDb(c);
   await syncHistoryToDb(h);
   computeStats();
+  if(document.getElementById('view-clients').classList.contains('active'))renderClientsTable();
   // Reset form
   closeModal('record-modal');
   ['rec-client-input','rec-type','rec-note','rec-amount','rec-master'].forEach(id=>document.getElementById(id).value='');
@@ -1250,11 +1291,19 @@ function completePlan(pid){
   const p=plannedJobs.find(x=>x.id===pid);if(!p)return;
   document.getElementById('cm-pid').value=pid;
   document.getElementById('cm-title').textContent='Выполнено: '+p.clientName;
-  document.getElementById('cm-info').textContent=typeLabel(p.type)+' · '+fmtDate(p.date)+(p.master?' · Мастер: '+p.master:'');
+  document.getElementById('cm-info').innerHTML='<b>'+p.clientName+'</b> · '+fmtDate(p.date)+(p.master?' · Мастер: '+p.master:'')+'<br>'+typeLabel(p.type)+(p.address?'<br>📍 '+p.address:'')+(p.phone?' · 📞 '+p.phone:'');
   document.getElementById('cm-date').value=p.date;
   document.getElementById('cm-amount').value='';
   document.getElementById('cm-note').value=p.note||'';
   document.getElementById('cm-master').value=p.master||'';
+  // Set type selector
+  const typeEl=document.getElementById('cm-type');
+  if(typeEl)typeEl.value=p.type||'filter';
+  // Auto-check parts
+  const cmPartIds=['cm-p-f3','cm-p-memb','cm-p-pump','cm-p-tank','cm-p-mineral','cm-p-other'];
+  cmPartIds.forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
+  if(p.type==='filter'||p.type==='both'){const el=document.getElementById('cm-p-f3');if(el)el.checked=true;}
+  if(p.type==='memb'||p.type==='both'){['cm-p-memb','cm-p-pump','cm-p-tank'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=true;});}
   document.getElementById('complete-modal').classList.add('open');
 }
 
@@ -1264,24 +1313,42 @@ async function saveComplete(){
   const note=document.getElementById('cm-note').value.trim();
   const master=document.getElementById('cm-master').value.trim();
   const dateVal=document.getElementById('cm-date').value;
+  const type=(document.getElementById('cm-type')?.value)||'filter';
+  // Collect checked parts
+  const cmPartMap={'cm-p-f3':'3 фильтра','cm-p-memb':'Мембрана','cm-p-pump':'Насос','cm-p-tank':'Бак','cm-p-mineral':'Минерализатор'};
+  const partsList=[];
+  Object.entries(cmPartMap).forEach(([id,lbl])=>{if(document.getElementById(id)?.checked)partsList.push(lbl);});
+  const otherCm=document.getElementById('cm-p-other');
+  const otherTxt=document.getElementById('cm-p-other-text');
+  if(otherCm?.checked&&otherTxt?.value.trim())partsList.push(otherTxt.value.trim());
+  const parts=partsList.join(', ');
   const p=plannedJobs.find(x=>x.id===pid);if(!p)return;
   p.done=true;
   const c=clients.find(x=>x.id===p.clientId);
-  const d=parseDate(dateVal||p.date);
   const useDate=dateVal||p.date;
-  if(d){
-    if(p.type==='filter'||p.type==='both'){if(c){c.filter_changes=[...(c.filter_changes||[]),useDate];c.next_filter=addMonths(d,6).toISOString().split('T')[0];}}
-    if(p.type==='memb'||p.type==='both'){if(c){c.memb_changes=[...(c.memb_changes||[]),useDate];c.next_memb=addYears(d,2).toISOString().split('T')[0];}}
+  const d=parseDate(useDate);
+  if(d&&c){
+    // Update client based on ACTUAL type selected (not plan type)
+    const hasF=(type==='filter'||type==='both')||(type==='custom'&&document.getElementById('cm-p-f3')?.checked);
+    const hasM=(type==='memb'||type==='both')||(type==='custom'&&['cm-p-memb','cm-p-pump','cm-p-tank','cm-p-mineral'].some(id=>document.getElementById(id)?.checked));
+    if(hasF){c.filter_changes=[...(c.filter_changes||[]),useDate];c.next_filter=addMonths(d,6).toISOString().split('T')[0];}
+    if(hasM){c.memb_changes=[...(c.memb_changes||[]),useDate];c.next_memb=addYears(d,2).toISOString().split('T')[0];}
   }
-  const h={id:Date.now(),client_id:p.clientId,client_name:p.clientName,phone:p.phone,address:p.address,type:p.type,date:useDate,parts:'',amount,master:master||p.master||'',note:note||(p.note?'из плана: '+p.note:'из плана'),recorded_at:new Date(useDate+'T12:00:00').toISOString()};
+  const h={id:Date.now(),client_id:p.clientId,client_name:p.clientName,phone:p.phone,address:p.address,
+    type,date:useDate,parts,amount,master:master||p.master||'',
+    note:note||(p.note?'из плана: '+p.note:'из плана'),
+    recorded_at:new Date(useDate+'T12:00:00').toISOString()};
   serviceHistory.unshift(h);doneThisSession++;
   closeModal('complete-modal');
   await localSave();
-  await syncPlanToDb(p);if(c)await syncClientToDb(c);await syncHistoryToDb(h);
+  await syncPlanToDb(p);
+  if(c)await syncClientToDb(c);
+  await syncHistoryToDb(h);
   computeStats();renderDashPlanned();
   if(document.getElementById('view-history').classList.contains('active')){initHistoryFilter();renderHistory();}
   if(document.getElementById('view-calendar').classList.contains('active'))renderCalendar();
   if(document.getElementById('view-schedule').classList.contains('active'))renderSchedule();
+  if(document.getElementById('view-clients').classList.contains('active'))renderClientsTable();
   toast('✓ '+p.clientName+(amount?' — '+amount.toLocaleString('ru')+' ₸':'')+' добавлено в историю','success');
 }
 async function deletePlan(pid){
@@ -1526,6 +1593,31 @@ function openEditHistory(hid){
   document.getElementById('eh-note').value=h.note||'';
   document.getElementById('edit-history-modal').classList.add('open');
 }
+function recalcClientDates(clientId){
+  // Find all history for this client, recalc next dates from LATEST entries
+  const c=clients.find(x=>x.id===clientId);if(!c)return;
+  const cHist=serviceHistory.filter(h=>h.client_id===clientId).sort((a,b)=>a.date.localeCompare(b.date));
+  // Latest filter date
+  const latestFilter=cHist.filter(h=>h.type==='filter'||h.type==='both'||(h.type==='custom'&&(h.parts||'').includes('фильтр'))).slice(-1)[0];
+  const latestMemb=cHist.filter(h=>h.type==='memb'||h.type==='both'||(h.type==='custom'&&['Мембрана','Насос','Бак'].some(p=>(h.parts||'').includes(p)))).slice(-1)[0];
+  if(latestFilter){
+    const d=parseDate(latestFilter.date);
+    if(d){
+      if(!c.filter_changes)c.filter_changes=[];
+      if(!c.filter_changes.includes(latestFilter.date))c.filter_changes.push(latestFilter.date);
+      c.next_filter=addMonths(d,6).toISOString().split('T')[0];
+    }
+  }
+  if(latestMemb){
+    const d=parseDate(latestMemb.date);
+    if(d){
+      if(!c.memb_changes)c.memb_changes=[];
+      if(!c.memb_changes.includes(latestMemb.date))c.memb_changes.push(latestMemb.date);
+      c.next_memb=addYears(d,2).toISOString().split('T')[0];
+    }
+  }
+}
+
 async function saveEditHistory(){
   const hid=parseInt(document.getElementById('eh-id').value);
   const h=serviceHistory.find(x=>x.id===hid);if(!h)return;
@@ -1536,10 +1628,18 @@ async function saveEditHistory(){
   h.master=document.getElementById('eh-master').value;
   h.note=document.getElementById('eh-note').value;
   h.recorded_at=new Date(h.date+'T12:00:00').toISOString();
+  // Recalc client's next dates based on ALL history
+  if(h.client_id)recalcClientDates(h.client_id);
+  const c=clients.find(x=>x.id===h.client_id);
   await localSave();
-  if(dbOnline){try{const {_idx,...clean}=h;await db.update('service_history',hid,clean);}catch(e){console.error(e);}}
+  if(dbOnline){
+    try{const {_idx,_done_filter,_done_memb,...clean}=h;await db.update('service_history',hid,clean);}catch(e){console.error(e);}
+    if(c)await syncClientToDb(c);
+  }
   closeModal('edit-history-modal');
+  computeStats();
   initHistoryFilter();renderHistory();
+  if(document.getElementById('view-clients').classList.contains('active'))renderClientsTable();
   toast('✓ Запись обновлена','success');
 }
 async function deleteHistoryEntry(hid){
