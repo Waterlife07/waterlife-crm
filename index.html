@@ -681,7 +681,7 @@ let clients = [];
 let serviceHistory = [];
 let plannedJobs = [];
 let dbOnline = false;
-let sortField = 'install_date', sortAsc = false;
+let sortField = 'install_date', sortAsc = true;
 let clientPage = 1;
 const pageSize = 50;
 let selectedClientId = null, selectedPlanClientId = null;
@@ -951,9 +951,9 @@ function renderClientsTable(){
   const filtered=getFiltered(),total=filtered.length,pages=Math.ceil(total/pageSize)||1;
   if(clientPage>pages)clientPage=1;
   const slice=filtered.slice((clientPage-1)*pageSize,clientPage*pageSize);
-  document.getElementById('clients-tbody').innerHTML=slice.map(c=>`
+  document.getElementById('clients-tbody').innerHTML=slice.map((c,i)=>`
     <tr>
-      <td style="color:var(--text3);font-family:Orbitron,monospace;font-size:10px">${c._idx}</td>
+      <td style="color:var(--text3);font-family:Orbitron,monospace;font-size:10px">${(clientPage-1)*pageSize+i+1}</td>
       <td style="font-weight:500;color:var(--text)">${c.name}</td>
       <td style="color:var(--accent)">${c.phone||'—'}</td>
       <td style="color:var(--text2)" title="${c.address||''}">${c.address||'—'}</td>
